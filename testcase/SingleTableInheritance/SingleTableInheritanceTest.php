@@ -10,6 +10,11 @@ require 'Bowller.php';
 
 use TRW\ActiveRecord\Database\Driver\MySql;
 
+use App\Model\FootBaller;
+use App\Model\Cricketer;
+use App\Model\Bowller;
+use App\Model\Player;
+
 class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 
 
@@ -28,17 +33,18 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 		$conn->query("DELETE FROM players");
 		$conn->query("INSERT INTO players(id, type ,name, club, batting_average, bowling_average) 
 			VALUES
-			(1, 'player', 'foo', null, null, null),
-			(2, 'cricketer', 'hoge', null, 100, null),
-			(3, 'bowller', 'bar', null, 20, 10),
+			(1, 'Player', 'foo', null, null, null),
+			(2, 'Cricketer', 'hoge', null, 100, null),
+			(3, 'Bowller', 'bar', null, 20, 10),
 
-			(4, 'footballer','fuga', 'A club', null, null)");
+			(4, 'FootBaller','fuga', 'A club', null, null)");
 	}
 
 	public function testRead(){
 		$player = Player::read(1);
 
-		$this->assertEquals('player', $player->type);
+		$this->assertInstanceOf('App\Model\Player', $player);
+		$this->assertEquals('Player', $player->type);
 		$this->assertEquals('foo', $player->name);
 		$this->assertEquals(null, $player->club);
 		$this->assertEquals(null, $player->batting_average);
@@ -47,7 +53,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 
 		$cricketer = Player::read(2);
 
-		$this->assertEquals('cricketer', $cricketer->type);
+		$this->assertInstanceOf('App\Model\Cricketer', $cricketer);
+		$this->assertEquals('Cricketer', $cricketer->type);
 		$this->assertEquals('hoge', $cricketer->name);
 		$this->assertEquals(null, $cricketer->club);
 		$this->assertEquals(100, $cricketer->batting_average);
@@ -56,7 +63,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 	
 		$bowller = Player::read(3);
 
-		$this->assertEquals('bowller', $bowller->type);
+		$this->assertInstanceOf('App\Model\Bowller', $bowller);
+		$this->assertEquals('Bowller', $bowller->type);
 		$this->assertEquals('bar', $bowller->name);
 		$this->assertEquals(null, $bowller->club);
 		$this->assertEquals(20, $bowller->batting_average);
@@ -64,8 +72,9 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 
 
 		$footballer = Player::read(4);
-		
-		$this->assertEquals('footballer', $footballer->type);
+	
+		$this->assertInstanceOf('App\Model\FootBaller', $footballer);	
+		$this->assertEquals('FootBaller', $footballer->type);
 		$this->assertEquals('fuga', $footballer->name);
 		$this->assertEquals('A club', $footballer->club);
 		$this->assertEquals(null, $footballer->batting_average);
@@ -81,6 +90,7 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 *	typeを明示しなければ各クラスで定義されたフィールドを持ち、
 *	typeには呼び出したクラス名が挿入される
 */
+		$this->assertInstanceOf('App\Model\Player', $player);
 		$this->assertEquals(
 			[
 				'name' => 'foo',
@@ -88,8 +98,11 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 			],
 			Player::read($player->id)->getData());
 
+
+
 		$footballer = FootBaller::create();
 
+		$this->assertInstanceOf('App\Model\FootBaller', $footballer);
 		$this->assertEquals(
 			[
 				'name' => null,
@@ -100,38 +113,41 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 
 
 
-
 		$cricketer = Player::newRecord([
 			'name' => 'bar',
-			'type' => 'cricketer',
+			'type' => 'Cricketer',
 			'batting_average' => 10
 		]);
 
+		$this->assertInstanceOf('App\Model\Cricketer', $cricketer);
 		$this->assertEquals(true, $cricketer->save());
 		$this->assertEquals(
 			[
 				'name' => 'bar',
-				'type' => 'cricketer',
+				'type' => 'Cricketer',
 				'batting_average' => 10
 			],
 			Player::read($cricketer->id)->getData());
 
-		$bowller = Player::newRecord([
+
+
+		$bowller = Player::create([
 			'name' => 'bar',
-			'type' => 'bowller',
+			'type' => 'Bowller',
 			'batting_average' => 10
 		]);
 		$bowller->bowling_average = 100;
 
-		$this->assertEquals(true, $bowller->save());
+		$this->assertInstanceOf('App\Model\Bowller', $bowller);
 		$this->assertEquals(
 			[
 				'name' => 'bar',
-				'type' => 'bowller',
+				'type' => 'Bowller',
 				'batting_average' => 10,
 				'bowling_average' => 100
 			],
 			Bowller::read($bowller->id)->getData());
+
 
 /*
 *	update
@@ -142,11 +158,11 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(
 			[
 				'name' => 'modified',
-				'type' => 'bowller',
+				'type' => 'Bowller',
 				'batting_average' => 10,
 				'bowling_average' => 100
 			],
-			Bowller::read($bowller->id)->getData());
+			Player::read($bowller->id)->getData());
 		
 
 

@@ -1,4 +1,5 @@
 <?php
+namespace App\Model;
 
 use TRW\ActiveRecord\BaseRecord;
 

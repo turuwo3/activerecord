@@ -281,8 +281,9 @@ class BaseRecord {
 			get_parent_class(static::className())
 			 && get_parent_class(static::className()) !== __NAMESPACE__ . '\BaseRecord'){
 
-			$STI = !empty($fields['type']) ? $fields['type'] : static::className();
-			$recordClass = $STI;
+			$STI = !empty($fields['type']) ?
+				 static::getNamespace() . '\\' . $fields['type'] : static::className();
+			$recordClass =  $STI;
 			$result = self::loadParentColumns($STI);	
 			$fields = self::filterData($result, $fields);		
 			$fields = $fields + $result;
@@ -329,7 +330,7 @@ class BaseRecord {
 			$recordClass = static::className();
 
 			if(!empty($rowData['type'])){
-				$recordClass = $rowData['type'];
+				$recordClass = static::getNamespace() . '\\' .$rowData['type'];
 				$record = IdentityMap::get($recordClass, $id);
 				if($record !== false){
 					return $record;
@@ -337,8 +338,8 @@ class BaseRecord {
 				$rowData = self::loadParent($rowData);
 			}
 
-			$newRecord = self::hydrate($rowData, static::className());
-
+			$newRecord = self::hydrate($rowData, $recordClass);
+			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
 			return $newRecord;
 		}
 
@@ -364,12 +365,23 @@ class BaseRecord {
 	}
 
 
+	private static function getNamespace(){
+		$fullName = static::className();
+		$split = explode('\\', $fullName);
+		array_pop($split);
+		$namespace = implode('\\', $split);
+
+		return $namespace;
+	}
+
 	private static function loadParent($rowData){
-		$STI = $rowData['type'];
+		$namespace = static::getNamespace();
+
+		$STI = $namespace . '\\' .$rowData['type'];
 		$result = [];
 		while($STI !== false){
 			if($STI !== __NAMESPACE__ . '\BaseRecord'){
-				$result = $result + $STI::load($rowData['id'])->fetch();
+				$result = $result +  $STI::load($rowData['id'])->fetch();
 			}
 			$STI = get_parent_class($STI);
 		}	
@@ -416,14 +428,21 @@ class BaseRecord {
 	}
 
 
+	private function removeNamespace($fullName){
+		$class = explode('\\', $fullName);
+		$name = array_pop($class);
+
+		return $name;
+	}
+
 	private function saveParentClass(){
 		if(empty($this->data['type'])){
-			$type = static::className();
+			$type =  static::removeNameSpace(static::className());
 			$this->data['type'] = $type;
 		}
 
-		if(!class_exists($this->data['type'])){
-			throw new Exception('missing type '.$this->data['type']);
+		if(!class_exists(static::getNamespace() . '\\' . $this->data['type'])){
+			throw new Exception('missing type '.$type);
 		}
 
 		if($this->isNew()){
@@ -566,50 +585,6 @@ class BaseRecord {
 	}
 
 
-	public static function deleteAll($tableName, $whereName, $comparision, $value){
-		$success = self::$connection->delete(
-			$tableName,
-			[
-				'where'=>[
-					'field'=>$whereName,
-					'comparision'=>$comparision,
-					'value'=>$value
-				]
-			]
-		);
-
-		return $success;
-	}
-
-
-	public static function insertAll($tableName, $values){
-		$success = self::$connection->insert($tableName, $values);
-
-		if($success){
-			return true;
-		}else{
-			return false;
-		}
-	}
-
-
-	public static function updateAll($tableName, $fields, $whereId){
-		$success = self::$connection->update(
-			$tableName,
-			$fields,
-			[
-				'where'=>[
-					'field'=>static::primaryKey(),
-					'comparision'=>'=',
-					'value'=>$whereId
-				]
-			]
-		 );
-
-		return $success;
-	}
-
-
 	public static function findAll(){	
 		$from = static::tableName();
 		$hydrate = static::className();
@@ -649,6 +624,61 @@ class BaseRecord {
 		
 	}
 
+/*
+* 中間テーブルのためのメソッド
+* このメソッドはIdentityMapへの登録は行わない
+*/
+	public static function insertAll($tableName, $values){
+		$success = self::$connection->insert($tableName, $values);
+
+		if($success){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+
+/*
+* 中間テーブルのためのメソッド
+* このメソッドはIdentityMapへの登録は行わない
+*/
+	public static function updateAll($tableName, $fields, $whereId){
+		$success = self::$connection->update(
+			$tableName,
+			$fields,
+			[
+				'where'=>[
+					'field'=>static::primaryKey(),
+					'comparision'=>'=',
+					'value'=>$whereId
+				]
+			]
+		 );
+
+		return $success;
+	}
+
+/*
+* 中間テーブルのためのメソッド
+* このメソッドはIdentityMapへの登録は行わない
+*/
+	public static function deleteAll($tableName, $whereName, $comparision, $value){
+		$success = self::$connection->delete(
+			$tableName,
+			[
+				'where'=>[
+					'field'=>$whereName,
+					'comparision'=>$comparision,
+					'value'=>$value
+				]
+			]
+		);
+
+		return $success;
+	}
+
+
 
 /*
 * BaseRecordから使用するとhydrateを入力してもアソシエーションはアタッチされない
@@ -681,8 +711,14 @@ class BaseRecord {
 		$pk = static::$primaryKey;
 
 		if(class_exists($recordClass)){
+			$record = IdentityMap::get(static::className(), $rowData[$pk]);
+
+			if($record !== false){
+				return $record;
+			}
+
 			$newRecord = new $recordClass($rowData);
-			$newRecord->id = $rowData[static::$primaryKey];
+			$newRecord->id = $rowData[$pk];
 
 			AssociationCollection::attach($newRecord, static::$associations);
 
