@@ -43,6 +43,7 @@ class RecordAssociationTest extends PHPUnit_Framework_TestCase {
 		$conn->query("INSERT INTO skills(id, name)
 			 VALUES(1,'skill1'), (2, 'skill2'), (3, 'skill3')");
 
+print_r(Skill::read(1));
 		$conn->query("DELETE FROM profiles");
 		$conn->query("INSERT INTO profiles(id, text, user_id) 
 			VALUES(1, 'bar profile', 1), (2, 'foo frofile', 2), (3, 'hoge frofile', 3)");
@@ -263,7 +264,43 @@ class RecordAssociationTest extends PHPUnit_Framework_TestCase {
 
 
 
+	public function testFindAll(){
+/*
+		$conn->query("DELETE FROM users");
+		$conn->query("INSERT INTO users(id,name) VALUES(1,'bar'), (2, 'foo'), (3, 'hoge'), (4, 'fuga')");
+		
+		$conn->query("DELETE FROM comments");
+		$conn->query("INSERT INTO comments(id, text, user_id)
+			VALUES(1, 'bar comment first', 1), (2, 'bar comment second', 1), (3, 'foo comment first', 2)");
 
+		$conn->query("DELETE FROM users_skills");
+		$conn->query("INSERT INTO users_skills(id, users_id, skills_id) 
+			VALUES(1, 1, 1), (2, 1, 2), (3, 2, 1)");
+	
+		$conn->query("DELETE FROM skills");
+		$conn->query("INSERT INTO skills(id, name)
+			 VALUES(1,'skill1'), (2, 'skill2'), (3, 'skill3')");
+
+		$conn->query("DELETE FROM profiles");
+		$conn->query("INSERT INTO profiles(id, text, user_id) 
+			VALUES(1, 'bar profile', 1), (2, 'foo frofile', 2), (3, 'hoge frofile', 3)");
+*/
+
+		$users = User::findAll();
+
+		$this->assertEquals('bar profile', $users[0]->Profile->text);
+		$this->assertEquals('foo frofile', $users[1]->Profile->text);
+		$this->assertEquals('hoge frofile', $users[2]->Profile->text);
+		$this->assertEquals(null, $users[3]->Profile);
+
+		$this->assertEquals('bar comment first', $users[0]->Comment[0]->text);
+		$this->assertEquals('bar comment second', $users[0]->Comment[1]->text);
+		$this->assertEquals('foo comment first', $users[1]->Comment[0]->text);
+		$this->assertEquals([], $users[2]->Comment);
+		$this->assertEquals([], $users[3]->Comment);
+		$this->assertEquals('skill1', $users[0]->Skill[0]->name);
+
+	}
 
 
 

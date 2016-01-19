@@ -21,7 +21,8 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	protected function setUp(){
 		$connection = self::$connection;
 		$connection->query("DELETE FROM mocks");
-		$connection->query("INSERT INTO mocks(name) values('bar')");
+		$connection->query("INSERT INTO mocks (id, name)
+			VALUES(1, 'bar'), (2, 'foo'), (3, 'hoge'), (4, 'fuga')");
 		IdentityMap::clearAll();
 	}
 
@@ -113,6 +114,49 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 */
 		$this->assertNotEquals('modified', Mock::read($record->id)->name);
 	}
+
+
+	public function testLimit(){
+
+		$result = Mock::limit(1);
+		$this->assertEquals('bar', $result[0]->name);
+
+
+
+		$result2 = Mock::limit(2,0);
+
+		$this->assertEquals('bar', $result2[0]->name);
+		$this->assertEquals('foo', $result2[1]->name);
+
+
+		$result3 = Mock::limit(2,2);
+
+		$this->assertEquals('hoge', $result3[0]->name);
+		$this->assertEquals('fuga', $result3[1]->name);
+	}
+
+
+	public function testFindBy(){
+		$result = Mock::findBy('name', '=', 'bar');
+
+		$this->assertEquals('bar', $result[0]->name);
+
+
+		$result2 = Mock::findBy('id', '=', '10');
+
+		$this->assertEquals([], $result2);
+	}
+
+
+	public function testFindAll(){
+		$result = Mock::findAll();
+
+		$this->assertEquals('bar', $result[0]->name);
+		$this->assertEquals('foo', $result[1]->name);
+		$this->assertEquals('hoge', $result[2]->name);
+		$this->assertEquals('fuga', $result[3]->name);
+	}
+
 
 }
 

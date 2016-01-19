@@ -337,22 +337,13 @@ class BaseRecord {
 				$rowData = self::loadParent($rowData);
 			}
 
-			if(class_exists($recordClass)){
-				$newRecord = new $recordClass($rowData);
-				$newRecord->id = $rowData[static::$primaryKey];
-			
-				AssociationCollection::attach($newRecord, static::$associations);
+			$newRecord = self::hydrate($rowData, static::className());
 
-				IdentityMap::set($recordClass, $newRecord->id, $newRecord);
-
-				return $newRecord;
-			
-			}else{
-				throw new Exception('class not found ' . $recordClass);
-			}
-		}else{
-			return false;
+			return $newRecord;
 		}
+
+		return false;
+
 	}
 
 
@@ -569,6 +560,8 @@ class BaseRecord {
 			]
 		);
 
+		IdentityMap::set(get_class($this), $this->id, null);
+
 		return $success;
 	}
 
@@ -643,7 +636,7 @@ class BaseRecord {
 	}
 
 	public static function limit($limit, $offset = null){
-		$rowData = self::$connection->read(
+		$statement = self::$connection->read(
 			static::tableName(),
 			['*'],
 			[
@@ -651,49 +644,61 @@ class BaseRecord {
 				'offset'=>$offset
 			]
 		);
-		if($rowData !== false){
-			return self::hydrate($rowData, static::className());
+
+		if($statement !== false){
+			$resultSet = [];
+			foreach($statement as $rowData){
+				$resultSet[] = self::hydrate($rowData, static::className());
+			}
+			return $resultSet;
 		}
 		return false;
 	}
 
 
 	public static function whereAll($from, $conditions, $hydrate = ''){
-		$rowData = self::$connection->read(
+		$statement = self::$connection->read(
 			$from,
 			['*'],
 			$conditions
 		);
 
-		if($rowData !== false){
+		if($statement !== false){
 
 			if($hydrate !== ''){
 				if(!class_exists($hydrate)){
 					throw new Exception('missing record ' . $hydrate );
 				}
-				return self::hydrate($rowData, $hydrate);
+				$resultSet = [];
+				foreach($statement as $rowData){
+					$resultSet[] = self::hydrate($rowData, $hydrate);
+				}
+				return $resultSet;
 			}
 
-			return $rowData;
+			return $statement;
 		}
 
 		return false;
 	}
 
 
-	protected static function hydrate($statement, $recordClass){
-		$resultSet = [];
+	protected static function hydrate($rowData, $recordClass){
 		$pk = static::$primaryKey;
-		foreach($statement as $row){
-			if(IdentityMap::get($recordClass, $row[$pk]) === false){	
-				$newRecord = new $recordClass($row);
-				$newRecord->id = $row[$pk];
-				IdentityMap::set($recordClass, $row[$pk], $newRecord);
-			}	
-			$resultSet[] = IdentityMap::get($recordClass, $row[$pk]);
+
+		if(class_exists($recordClass)){
+			$newRecord = new $recordClass($rowData);
+			$newRecord->id = $rowData[static::$primaryKey];
+			
+			AssociationCollection::attach($newRecord, static::$associations);
+
+			IdentityMap::set($recordClass, $newRecord->id, $newRecord);
+
+			return $newRecord;
+		}else{
+			throw new Exception('class not found ' . $recordClass);
 		}
 
-		return $resultSet;
 	}
 
 
