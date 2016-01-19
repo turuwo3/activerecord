@@ -44,7 +44,7 @@ class BelongsToMany extends Association {
 		$results = [];
 
 	    foreach($links as $target){
-			$targetTable = $this->createTableName($this->source());
+			$targetTable = $this->createTableName($this->target());
 			$recordName = $this->recordNamespace($this->target());
 			$find = BaseRecord::whereAll(
 				$targetTable,
