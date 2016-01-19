@@ -636,26 +636,23 @@ class BaseRecord {
 	}
 
 	public static function limit($limit, $offset = null){
-		$statement = self::$connection->read(
-			static::tableName(),
-			['*'],
+		$from = static::tableName();
+		$hydrate = static::className();
+
+		return self::whereAll(
+			$from,
 			[
 				'limit'=>$limit,
 				'offset'=>$offset
-			]
-		);
-
-		if($statement !== false){
-			$resultSet = [];
-			foreach($statement as $rowData){
-				$resultSet[] = self::hydrate($rowData, static::className());
-			}
-			return $resultSet;
-		}
-		return false;
+			],
+			$hydrate);
+		
 	}
 
 
+/*
+* BaseRecordから使用するとhydrateを入力してもアソシエーションはアタッチされない
+*/
 	public static function whereAll($from, $conditions, $hydrate = ''){
 		$statement = self::$connection->read(
 			$from,
@@ -666,9 +663,7 @@ class BaseRecord {
 		if($statement !== false){
 
 			if($hydrate !== ''){
-				if(!class_exists($hydrate)){
-					throw new Exception('missing record ' . $hydrate );
-				}
+
 				$resultSet = [];
 				foreach($statement as $rowData){
 					$resultSet[] = self::hydrate($rowData, $hydrate);
@@ -682,14 +677,13 @@ class BaseRecord {
 		return false;
 	}
 
-
 	protected static function hydrate($rowData, $recordClass){
 		$pk = static::$primaryKey;
 
 		if(class_exists($recordClass)){
 			$newRecord = new $recordClass($rowData);
 			$newRecord->id = $rowData[static::$primaryKey];
-			
+
 			AssociationCollection::attach($newRecord, static::$associations);
 
 			IdentityMap::set($recordClass, $newRecord->id, $newRecord);
