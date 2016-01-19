@@ -1,0 +1,11 @@
+{
+	"name": "turuwo3/activerecord",
+	"description": "activerecord!",
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"TRW\\ActiveRecord\\": "."
+		}
+	}
+
+}
