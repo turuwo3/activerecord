@@ -23,20 +23,24 @@ class BelongsToMany extends Association {
 
 
 	private function findTarget($record){
-		$foreignKeyId = $record->id();
 
-		$linkTable = $this->linkTable();
+		$foreignKeyId = $record->id();
 		$ownForeignKey = $this->createForeignKey($this->source());
 
+		$conditions = [
+			'where'=>[
+				'field'=>$ownForeignKey,
+				'comparision'=>'=',
+				'value'=>$foreignKeyId
+			]
+		];
+	
+		$conditions = $this->mergeOption($conditions);
+			
+		$linkTable = $this->linkTable();
 		$links = BaseRecord::whereAll(
 			$linkTable,
-			[
-				'where' => [
-					'field' => $ownForeignKey,
-					'comparision' => '=',
-				 	'value' => $foreignKeyId
-				]
-			]);
+			$conditions);
 
 		$targetForeignKey = $this->createForeignKey($this->target());
 

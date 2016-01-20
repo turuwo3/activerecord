@@ -8,20 +8,25 @@ use TRW\ActiveRecord\Association;
 class HasMany extends Association{
 
 	function find($record){
+
 		$foreignKey = $this->createForeignKey($this->source());
 		$foreignKeyId = $record->id();
+		$conditions = [
+			'where'=>[
+				'field'=>$foreignKey,
+				'comparision'=>'=',
+				'value'=>$foreignKeyId
+			]
+		];
+
+		$conditions = $this->mergeOption($conditions);
+
 		$targetTable = $this->createTableName($this->target());
 		$recordName = $this->recordNamespace($this->target());
-
+		
 		$results = BaseRecord::whereAll(
 			$targetTable,
-			[
-				'where'=> [
-					'field' => $foreignKey,
-					'comparision' => '=',
-					'value' => $foreignKeyId,
-				]
-			],
+			$conditions,
 			$recordName);
 
 		if(count($results) === 0 || $results === false){

@@ -8,24 +8,27 @@ class BelongsTo extends Association {
 
 	public function find($record){
 		$primaryKey = $record->primaryKey();
-
 		$foreignKey = $this->createForeignKey($this->target());
 		$foreignKeyId = $record->$foreignKey;
 
+		$conditions = [
+			'where' => [
+				'field' => $primaryKey,
+				'comparision' => '=',
+				'value' => $foreignKeyId
+			]
+		];
+
+		$conditions = $this->mergeOption($conditions);
+
 		$targetTable = $this->createTableName($this->target());
 		$recordName = $this->recordNamespace($this->target());
-
+		
 		$results = BaseRecord::whereAll(
 			$targetTable,
-			[
-				'where' => [
-					'field' => $primaryKey,
-					'comparision' => '=',
-					'value' => $foreignKeyId
-				]
-			],
+			$conditions,
 			$recordName);
-
+		
 		if(count($results) === 0 || $results === false){
 			$belongsTo = null;
 		}else{

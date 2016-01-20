@@ -21,20 +21,20 @@ class AssociationCollection {
 		self::$associations = [];
 	}
 
-	private static function BelongsTo($own, $target){
-		return new BelongsTo($own, $target);
+	private static function BelongsTo($own, $target, $option){
+		return new BelongsTo($own, $target, $option);
 	}
 
-	private static function HasOne($own, $target){
-		return new HasOne($own, $target);
+	private static function HasOne($own, $target, $option){
+		return new HasOne($own, $target, $option);
 	}
 
-	private static function HasMany($own, $target){
-		return new HasMany($own, $target);
+	private static function HasMany($own, $target, $option){
+		return new HasMany($own, $target, $option);
 	}
 
-	private static function BelongsToMany($own, $target){
-		return new BelongsToMany($own, $target);
+	private static function BelongsToMany($own, $target, $option){
+		return new BelongsToMany($own, $target, $option);
 	}
 
 /*
@@ -52,8 +52,8 @@ class AssociationCollection {
 		}
 
 		foreach($associationMap as $type => $targets){
-				foreach($targets as $target ){
-					self::$associations[$own][$type][] = self::$type($own, $target);
+				foreach($targets as $target => $option){
+					self::$associations[$own][$type][] = self::$type($own, $target, $option);
 				}
 		}
 

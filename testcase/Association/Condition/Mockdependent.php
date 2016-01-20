@@ -3,12 +3,11 @@ namespace App\Model;
 
 use TRW\ActiveRecord\BaseRecord;
 
-class Comment extends BaseRecord {
+class Mockdependent extends BaseRecord {
 
 	protected static $associations = [
-		'BelongsTo' => [
-			'User'=>[]
-		],
+		'BelongsTo'=>['Mock']
 	];
+
 
 }

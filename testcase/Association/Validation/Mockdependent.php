@@ -6,7 +6,9 @@ use TRW\ActiveRecord\BaseRecord;
 class Mockdependent extends BaseRecord {
 
 	protected static $associations = [
-		'BelongsTo'=>['Mock']
+		'BelongsTo'=>[
+			'Mock'=>[]
+		]
 	];
 
 	protected function validate(){

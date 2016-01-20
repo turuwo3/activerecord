@@ -9,10 +9,13 @@ abstract class Association {
 	private $recordNamespace;
     private $source;
 	private $target;
+
+	private $option = [];
 	    
-	public function __construct($source, $target){
+	public function __construct($source, $target, $option = []){
 		$this->source = $source;
 		$this->target = $target;
+		$this->option = $option;
 	}
 					   
 	public function source(){
@@ -21,6 +24,22 @@ abstract class Association {
 								   
 	public function target(){
 		return $this->target;
+	}
+	
+	protected function mergeOption($conditions){
+		$conditions = array_merge($conditions, $this->option);
+
+		return $conditions;
+	}
+
+	public function getOption($key = null){
+		if($key === null){
+			return $this->option;
+		}
+		if(empty($this->option[$key])){
+			return false;
+		}
+		return $this->option[$key];
 	}
 											   
 	abstract public function find($record);
