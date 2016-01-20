@@ -339,6 +339,8 @@ class BaseRecord {
 			}
 
 			$newRecord = self::hydrate($rowData, $recordClass);
+			AssociationCollection::attach($newRecord, $recordClass::$associations);
+	
 			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
 			return $newRecord;
 		}
@@ -585,43 +587,56 @@ class BaseRecord {
 	}
 
 
-	public static function findAll(){	
+	public static function find($conditions = []){
 		$from = static::tableName();
-		$hydrate = static::className();
+		$columns = array_keys(static::useColumn());
 
-		return  self::whereAll($from,
-			 [],
-			 $hydrate);
+		$statement = self::$connection->read(
+			$from,
+			$columns,
+			$conditions
+		);
+		
+		$hydrate = static::className();
+		$resultSet = [];
+		foreach($statement as $rowData){
+			$record = self::hydrate($rowData, $hydrate);
+			AssociationCollection::attach($record, static::$associations);
+			$resultSet[] = $record;
+		}
+		
+		return $resultSet;
+	}
+
+
+	public static function findAll(){	
+		$resultSet = self::find([]);
+		return $resultSet;
 	}
 
 	public static function findBy($name, $comparision, $value){
-		$from = static::tableName();
-		$hydrate = static::className();
-
-		return self::whereAll(
-			$from,
+		$resultSet = self::find(
 			[
-				'where' => [
-					'field' => $name,
-					'comparision' => $comparision,
-					'value' => $value
-				],
-			],
-			$hydrate);
+				'where'=>[
+					'field'=>$name,
+					'comparision'=>$comparision,
+					'value'=>$value
+				]
+			]
+		);
+		
+		return $resultSet;
 	}
 
-	public static function limit($limit, $offset = null){
-		$from = static::tableName();
-		$hydrate = static::className();
-
-		return self::whereAll(
-			$from,
+	public static function limit($limit, $offset = null){	
+		$resultSet = self::find(
 			[
 				'limit'=>$limit,
-				'offset'=>$offset
-			],
-			$hydrate);
+				'offset'=>$offset	
+			]
+		);
 		
+		return $resultSet;
 	}
 
 /*
@@ -680,9 +695,6 @@ class BaseRecord {
 
 
 
-/*
-* BaseRecordから使用するとhydrateを入力してもアソシエーションはアタッチされない
-*/
 	public static function whereAll($from, $conditions, $hydrate = ''){
 		$statement = self::$connection->read(
 			$from,
@@ -696,7 +708,8 @@ class BaseRecord {
 
 				$resultSet = [];
 				foreach($statement as $rowData){
-					$resultSet[] = self::hydrate($rowData, $hydrate);
+					$record = self::hydrate($rowData, $hydrate);
+					$resultSet[] = $record;
 				}
 				return $resultSet;
 			}
@@ -719,8 +732,6 @@ class BaseRecord {
 
 			$newRecord = new $recordClass($rowData);
 			$newRecord->id = $rowData[$pk];
-
-			AssociationCollection::attach($newRecord, static::$associations);
 
 			IdentityMap::set($recordClass, $newRecord->id, $newRecord);
 

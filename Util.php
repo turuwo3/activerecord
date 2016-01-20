@@ -26,7 +26,7 @@ class Util {
     public static  function plural($singular) {
 		$plural = "";
 		if (array_key_exists($singular, self::$dictionary)) {
-			$plural = $dictionary[$singular];
+			$plural = self::$dictionary[$singular];
 		} elseif (preg_match('/(s|x|sh|ch|o)$/', $singular)) {
 			$plural = preg_replace('/(s|x|sh|ch|o)$/', '$1es', $singular);
 		} elseif (preg_match('/y$/', $singular)) {

@@ -158,6 +158,12 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testFind(){
+		$result = Mock::find([]);
+
+		//print_r($result);
+	}
+
 }
 
 
