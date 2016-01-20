@@ -44,11 +44,9 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testRead(){
-		$parent = Inheritance::read(1);
-		print_r($parent);
 
 		$child = Inheritance::read(2);
-		print_r($child);
+		$this->assertEquals('two', $child->Inheritancedependent[0]->name);
 
 		print_r(Inheritance::findAll());
 

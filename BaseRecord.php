@@ -326,26 +326,18 @@ class BaseRecord {
 
 		$rowData = self::load($id)->fetch();
 		if($rowData !== false){
-
-			$recordClass = static::className();
-
 			if(!empty($rowData['type'])){
-				$recordClass = static::getNamespace() . '\\' .$rowData['type'];
-				$record = IdentityMap::get($recordClass, $id);
-				if($record !== false){
-					return $record;
-				}
-				$rowData = self::loadParent($rowData);
+				return self::findSTI($rowData);
 			}
 
-			$newRecord = self::hydrate($rowData, $recordClass);
-			AssociationCollection::attach($newRecord, $recordClass::$associations);
-	
-			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
-			return $newRecord;
+			return self::find([
+				'where'=>[
+					'field'=>static::$primaryKey,
+					'comparision' =>'=',
+					'value'=>$id
+				]
+			])[0];
 		}
-
-		return false;
 
 	}
 
@@ -366,6 +358,22 @@ class BaseRecord {
 		return $rowData;
 	}
 
+	private static function findSTI($rowData){
+			$recordClass = static::getNamespace() . '\\' .$rowData['type'];
+			$record = IdentityMap::get($recordClass, $rowData[static::$primaryKey]);
+			if($record !== false){
+				return $record;
+			}
+
+			$rowData = self::loadParent($rowData);
+
+			$newRecord = self::hydrate($rowData, $recordClass);
+			AssociationCollection::attach($newRecord, $recordClass::$associations);
+	
+			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
+		
+			return $newRecord;
+	}
 
 	private static function getNamespace(){
 		$fullName = static::className();
@@ -601,7 +609,7 @@ class BaseRecord {
 		$resultSet = [];
 		foreach($statement as $rowData){
 			$record = self::hydrate($rowData, $hydrate);
-			AssociationCollection::attach($record, static::$associations);
+			AssociationCollection::attach($record, $hydrate::$associations);
 			$resultSet[] = $record;
 		}
 		
