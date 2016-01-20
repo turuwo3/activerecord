@@ -15,6 +15,7 @@ class MySql extends Driver {
 		$user = $config['user'];
 		$password = $config['password'];
 		$this->connection = new PDO($dsn, $user, $password);
+		$this->connection->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 	}
 
 	protected function connect(){
@@ -74,6 +75,5 @@ class MySql extends Driver {
 	public function lastInsertId(){
 		return $this->connection->lastInsertId();
 	}
-
 
 }

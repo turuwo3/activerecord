@@ -6,7 +6,7 @@ require '../../vendor/autoload.php';
 use TRW\ActiveRecord\Database\Driver;
 use TRW\ActiveRecord\Database\Driver\MySql;
 
-class DriverTest extends PHPUnit_Framework_TestCase {
+class MySqlTest extends PHPUnit_Framework_TestCase {
 
 	protected  $db;
 
@@ -92,6 +92,26 @@ class DriverTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$this->assertEquals(4, count($result2->fetchAll()));
+	}
+
+
+
+	public function testRowCount(){
+
+		$result = $this->db->read(
+			'users',
+			['id', 'name'],
+			[
+				'where'=>[
+					'field' => 'id',
+					'comparision' => '=',
+					'value' => 1
+				]
+			]
+		);
+
+		$this->assertEquals(4, $this->db->rowCount());		
+
 	}
 
 
