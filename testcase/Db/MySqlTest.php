@@ -15,7 +15,13 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$this->db =  new MySql($config['Database']['MySql']);
 		$conn = $this->db;
 		$conn->query("DELETE FROM users");
-		$conn->query("INSERT INTO users(id,name) VALUES(1,'bar'), (2, 'foo'), (3, 'hoge'), (4, 'fuga')");
+		$conn->query("INSERT INTO users(id,name) VALUES
+			(1,'bar'), (2, 'foo'), (3, 'hoge'), (4, 'fuga')");
+	}
+
+
+	public function testRowCount(){
+		$this->assertEquals(4, $this->db->rowCount('users'));	
 	}
 
 
@@ -59,7 +65,6 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 			[]
 		);
 
-		print_r($queryObject);
 
 	}
 
@@ -93,27 +98,6 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(4, count($result2->fetchAll()));
 	}
-
-
-
-	public function testRowCount(){
-
-		$result = $this->db->read(
-			'users',
-			['id', 'name'],
-			[
-				'where'=>[
-					'field' => 'id',
-					'comparision' => '=',
-					'value' => 1
-				]
-			]
-		);
-
-		$this->assertEquals(4, $this->db->rowCount());		
-
-	}
-
 
 
 	public function testInsert(){

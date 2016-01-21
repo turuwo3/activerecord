@@ -184,6 +184,24 @@ abstract class Driver {
 		return $queryObject;
 	}
 
+	public function rowCount($table, $options = null){
+		$column = '*';
+		if(isset($options['column'])){
+			$column = $options['column'];
+		}
+
+		$whereString = '';
+		if(isset($options['where'])){
+			$where = $options['where'];
+			$whereString = "WHERE {$where['field']}{$where['comparision']}{$where['value']}";
+		}
+		$statement = $this->connect()->query("SELECT COUNT({$column}) FROM {$table} {$whereString}");
+
+		$rowCount = $statement->fetchColumn();
+		
+		return $rowCount;
+	}
+
 	abstract public function begin();
 
 	abstract public function commit();

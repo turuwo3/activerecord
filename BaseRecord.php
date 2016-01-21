@@ -226,6 +226,13 @@ class BaseRecord {
 		return $this->data;
 	}
 
+	public static function rowCount($column = null){
+		$table = static::tableName();
+
+		$rowCount = self::$connection->rowCount($table, $column);
+
+		return $rowCount;
+	}
 
 	private static function filterData($filter, $data){
 		$results = [];
