@@ -184,6 +184,19 @@ abstract class Driver {
 		return $queryObject;
 	}
 
+	public function rowCount($table, $column = null){
+		$name = '*';
+		if($column !== null){
+			$name = $column;
+		}
+
+		$statement = $this->connect()->query("SELECT COUNT({$name}) FROM {$table}");
+
+		$rowCount = $statement->fetchColumn();
+		
+		return $rowCount;
+	}
+
 	abstract public function begin();
 
 	abstract public function commit();

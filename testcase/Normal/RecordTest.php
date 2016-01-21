@@ -26,6 +26,9 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		IdentityMap::clearAll();
 	}
 
+	public function testRowCount(){
+		$this->assertEquals(4, Mock::rowCount());
+	}
 	
 	public function testRead(){
 
