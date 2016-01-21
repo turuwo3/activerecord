@@ -28,6 +28,14 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 
 	public function testRowCount(){
 		$this->assertEquals(4, Mock::rowCount());
+
+		$this->assertEquals(1, Mock::rowCount([
+			'where'=>[
+				'field'=>'id',
+				'comparision'=>'=',
+				'value'=>1
+			]
+		]));
 	}
 	
 	public function testRead(){
