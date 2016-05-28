@@ -5,8 +5,16 @@ use PDO;
 use Exception;
 use TRW\ActiveRecord\BaseRecord;
 
+/**
+* このクラスはレコードクラスが使用しているテーブルのスキーマを表すクラス
+*
+* @access private
+*/
 class Schema {
 
+/**
+* スキーマの型を定義している.
+*/
 	const
 		INTEGER = 'integer',
 		DOUBLE = 'double',
@@ -14,40 +22,65 @@ class Schema {
 		STRING = 'string',
 		DATETIME = 'datetime';
 
-
+/**
+* データベーステーブル名.
+*
+* @var string 
+*/
 	private $table;
 
-/*
-*	array = [
-*		$field => [
-*			'type' => typename,
-*			'null' => boolean,
-*			'key' => boolean,
-*			'default' => '',
+/**
+* テーブルのスキーマ.
+*
+* 次の構造をしている
+*	$schema = [
+*		'name' => [
+*			'type' => text,
+*			'null' => true,
+*			'key' => false,
+*			'default' => 'anonymous',
 *			'extra' => ''
-*		]
-*	]	
+*		],
+*      :
+*      :
+*      : 
+*	];	
 *	
 *	@var array
 */
 	private $schema;
 
-/*
-*	array = [
-*		$field => $value,
-*	]
+/**
+* カラムの名前と値.
+* 次の構造をしている
+* $columns =
+* [
+*  'id' => 1,
+*  'name' => 'foo'
+*  'age' => 20,
+* ]
 *
-*	@var array;
+* @var array;
 */
 	private $columns;
 
-
+/**
+* カラムの名前とデフォルト値.
+*
+* @var array
+*/
 	private $defaults;
 
 	public function __construct($table){
 		$this->table = $table;
 	}
 
+/**
+* テーブル名を返す.
+*
+* @param string $table 
+* @return string @param
+*/
 	public function table($table = null){
 		if($table !== null){
 			return $this->table = $table;
@@ -55,7 +88,11 @@ class Schema {
 		return $this->table;
 	}
 
-
+/**
+* データベーステーブルのスキーマを返す.
+*
+* @return array データベーステーブルのスキーマ
+*/
 	public function schema(){
 		if(empty($this->schema)){
 			 $this->schema = BaseRecord::schema($this->table);
@@ -63,7 +100,12 @@ class Schema {
 		return $this->schema;
 	}
 
-
+/**
+* データベーステーブルのカラムとその情報を返す.
+*
+*
+* @return array カラムとその情報
+*/
 	public function columns(){
 		if(empty($this->columns)){
 
@@ -99,6 +141,11 @@ class Schema {
 		return $this->columns;
 	}
 
+/**
+* データベーステーブルのカラムとその初期値を返す.
+*
+* @return array データベーステーブルのカラムとその初期値
+*/
 	public function defaults(){
 
 		if(empty($this->defaults)){

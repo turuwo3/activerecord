@@ -4,7 +4,9 @@ namespace App\Model;
 class Child extends Inheritance {
 
 	protected static $associations = [
-		'HasMany' => ['Inheritancedependent']
+		'HasMany' => [
+			'Inheritancedependent' => []
+		]
 	];
 
 	protected static $useColumn = [

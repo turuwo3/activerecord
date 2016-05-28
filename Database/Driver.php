@@ -3,23 +3,86 @@ namespace TRW\ActiveRecord\Database;
 
 use PDO;
 
+/**
+* このクラスはデータベースの基底クラス.
+*
+* 各データベースはこのクラスを継承しなければならない
+*
+*/
 abstract class Driver {
 
 	private $defaultConfig = [
 
 	];
 
+/**
+* 
+*
+* @param array $config データベースの接続情報など
+*/
 	public function __construct($config){
 		$config = array_merge($this->defaultConfig, $config);
 		$this->connection($config);
 	}
 
+/**
+* コネクションを設定する.
+* 
+* コネクションはPDOクラスでなければならない
+* 
+* @param array $config データベース接続、設定に必要な情報
+* @return void
+*/
 	abstract protected function connection($config);
 
+/**
+* コネクションを返す
+*
+* @return \PDO
+*/
 	abstract protected function connect();
 
+/**
+* テーブルの有無を検査する.
+*
+* @param string $tableName テーブル名
+: @return boolean テーブルがあればtrue なければfalseを返す
+*/
 	abstract public function tableExists($tableName);
 
+/**
+* テーブルのスキーマを返す.
+*
+* スキーマは次の構造で返さなければならない
+* 
+*	$schema = [
+*		$filed => [
+*			'type' => type,
+*			'null' => boolean,
+*			'key' => boolean,
+*			'default' => '',
+*			'extra' => ''
+*		],
+*      :
+*      :
+*      : 
+*	];	
+*
+* (例
+*	$example = [
+*		'name' => [
+*			'type' => text,
+*			'null' => true,
+*			'key' => false,
+*			'default' => 'anonymous',
+*			'extra' => ''
+*		],
+*      :
+*      :
+*      : 
+*	];	
+*
+*/
 	abstract public function schema($tableName);
 
 	public function query($sql){
@@ -43,17 +106,38 @@ abstract class Driver {
 		}
 		return false;
 	}
-/*
+/**
+* データベーステーブルからレコードを取得する.
+*
+* @param string $tableName 取得したいテーブル名 ユーザーからの値を渡してはならない
+* @param array 取得対象のカラム名　ユーザーからの値を渡してはならない
+* 次の構造で渡さなければならない
+* $fields = 
 *  [
-*	 'where'=[
-*	 	'field'=>'id',
-*		'comparision'=>'=',
-*		'value'=>$id
+*    'id',
+*    'name',
+*	 'age'
+*  ];
+* @param array $conditions
+  以下のキーを使うことができる
+* $conditions =
+*  [
+*	 'where'=>[
+*      'field'=>'name',
+*      'comparision'=>'=',
+*      'value'=>'foo'
 * 	 ],
-* 	 'order'='id desc',
-* 	 'limit'='1',
-* 	 'offset'='3'
-*  ]
+*    'and' => [
+*      'field' => 'age',
+*      'comparition' => '>',
+*      'value' => 20
+*    ],
+* 	 'order' => 'id DESC',
+* 	 'limit' => 1,
+* 	 'offset' => 3
+*  ];
+*
+* @return PDOStatement|false executeに失敗したらfalseを返す
 */
 
 	public function read($tableName, array $fields, $conditions = []){
@@ -67,7 +151,24 @@ abstract class Driver {
 		return $result;
 	}
 
-
+/**
+* セレクト文を返す
+*
+* @param string $tableName 取得したいテーブル名　ユーザーからの値を渡してはならない
+* @param array $fileds 取得したいカラム名　ユーザーからの値を渡してはならない
+* @param array $conditions 検索条件
+* @return array セレクト文とバインドバリューのセット
+* 次の構造をした配列を返す
+* $queryObject = 
+*  [
+*    'sql' => "SELECT id,name,age FROM users WHERE id=:id",
+*    'bindValue' => [
+*      ':id' => 1
+*    ]
+*  ];
+*
+*
+*/
 	public function buildSelectQuery($tableName,  $fields, $conditions = []){
 		$columns = implode(',', $fields);
 		$makeConditions = $this->conditions($conditions);		
@@ -80,7 +181,39 @@ abstract class Driver {
 
 		return $queryObject;
 	}
-
+/**
+* 条件文を返す.
+*
+*
+* @param array $conditions
+  以下のキーを使うことができる
+* $conditions =
+*  [
+*	 'where'=>[
+*      'field'=>'name',
+*      'comparision'=>'=',
+*      'value'=>'foo'
+* 	 ],
+*    'and' => [
+*      'field' => 'age',
+*      'comparition' => '>',
+*      'value' => 20
+*    ],
+* 	 'order' => 'id DESC',
+* 	 'limit' => 1,
+* 	 'offset' => 3
+*  ];
+* @return array 条件文とバインドバリューのセット
+* 次の構造をした配列を返す
+* $queryObject = 
+*  [
+*    'sql' => "WHERE name=:name AND age>:age LIMIT 1 OFFSET 3 ORDER BY id DESC",
+*    'bindValue' => [
+*      ':name' => 'foo',
+*      ':age' => 20
+*    ]
+*  ];
+*/
 	protected function conditions($conditions){
 		extract($conditions);
 		$bindValue = [];
