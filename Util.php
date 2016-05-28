@@ -1,7 +1,11 @@
 <?php
-
 namespace TRW\ActiveRecord;
 
+/**
+* このクラスは文字列変換を行う.
+*
+*
+*/
 class Util {
 
 	private static $dictionary = [
@@ -23,6 +27,12 @@ class Util {
 		'woman'      => 'women',
 	];
 
+/**
+* 単数形を複数形に変換する.
+*
+* @param string $singular 単数形の文字列
+* @return string　複数形の文字列
+*/
     public static  function plural($singular) {
 		$plural = "";
 		if (array_key_exists($singular, self::$dictionary)) {
@@ -37,6 +47,12 @@ class Util {
 		return $plural;
 	}
 
+/**
+* 複数形を単数形に変換する.
+*
+* @param string $plural 複数形の文字列
+* @return string 単数形の文字列
+*/
 	public static function singular($plural){
 		$singular = '';
 		if(array_search($plural, self::$dictionary)){
@@ -51,6 +67,23 @@ class Util {
 		return $singular;
 	}
 
+/**
+* 名前空間をクラス名から分裂する.
+*
+* @param string クラス名
+* @return array 名前空間とクラス名
+* 名前空間ありの場合 = 
+*  [
+*    'App\Model',
+*    'User'
+*  ];
+*
+* 名前空間無しの場合 =
+*  [
+*    '',
+*    'User'
+*  ];
+*/
 	public static function namespaceSplit($class){
 		$pos = strrpos($class, '\\');
 		if($pos === false){

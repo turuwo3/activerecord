@@ -46,7 +46,7 @@ abstract class Driver {
 * テーブルの有無を検査する.
 *
 * @param string $tableName テーブル名
-: @return boolean テーブルがあればtrue なければfalseを返す
+* @return boolean テーブルがあればtrue なければfalseを返す
 */
 	abstract public function tableExists($tableName);
 
@@ -85,10 +85,22 @@ abstract class Driver {
 */
 	abstract public function schema($tableName);
 
+/**
+* クエリを実行する.
+*
+* @param string $sql SQL文
+* @return PDOStatement
+*/
 	public function query($sql){
 		return $this->connect()->query($sql);
 	}
 
+/**
+* プリペアドステートメントを返す.
+*
+* @param array $query sql文とバインドバリューのセット
+* @return PDOStatement;
+*/
 	protected function prepare($query){
 		$sql = $query['sql'];
 		$statement = $this->connect()->prepare($sql);
@@ -99,6 +111,11 @@ abstract class Driver {
 		return $statement;
 	}
 
+/**
+* ステートメントを実行する.
+*
+* @return PDOStatement|boolean 実行に失敗するとfalse
+*/
 	protected function execute($query){
 		$statement = $this->prepare($query);
 		if($statement->execute()){
@@ -106,6 +123,7 @@ abstract class Driver {
 		}
 		return false;
 	}
+
 /**
 * データベーステーブルからレコードを取得する.
 *
@@ -181,6 +199,7 @@ abstract class Driver {
 
 		return $queryObject;
 	}
+
 /**
 * 条件文を返す.
 *
@@ -317,6 +336,22 @@ abstract class Driver {
 		return $queryObject;
 	}
 
+/**
+* テーブルの行数を返す.
+*
+* @param string $table 数えたいテーブルの名前
+* @param array $option nullを渡すとテーブル全行を数える
+* $optionは次の様にする
+* $option = 
+*  [
+*    'column' => 'id,name',
+*    'where'=> [
+*      'field' => 'id',
+*      'comparision' => '=',
+*      'value' => 1
+*    ]
+*  ]
+*/
 	public function rowCount($table, $options = null){
 		$column = '*';
 		if(isset($options['column'])){

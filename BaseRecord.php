@@ -12,11 +12,27 @@ use TRW\ActiveRecord\IdentityMap;
 use TRW\ActiveRecord\Util;
 use TRW\ActiveRecord\AssociatoinCollection;
 
-
+/**
+* レコードクラスの基底となるクラス.
+*
+* このクラスはデータベーステーブルの行をオブジェクトでラッピングし、
+* データの挿入、保存などを行うアクティブレコードを模している。
+*
+* 開発者はこのクラスを継承することでアクティブレコードの機能を利用することができます
+*
+* このクラスを継承するクラスは必要に応じてドメインロジックを実装してください
+*
+* 継承するクラスは、このクラスの「オーバーライド可能なフィールド」もしくは、
+* 「オーバーライド可能なメソッド」のコメントが無い物はオーバーライドしてはいけません
+*
+* またpublic、protectedなフィールド、メソッドであっても
+* 「使用禁止」のコメントがあるものは使用してはいけません
+*
+*/
 class BaseRecord {
 
 /**
-* データベースへ接続するためのドライバ.
+* データベースへ接続するためのドライバクラス.
 *
 * @var Driver 
 * 
@@ -24,14 +40,48 @@ class BaseRecord {
 	private static $connection;
 
 /**
-* データベーステーブルどおしの関連情報.
+* レコードクラスの関連情報.
 *
-* @var array
+* オーバーライド可能なフィールド
+*
+* レコードクラスの関連を定義したい場合は継承先で次の様にオーバーライドする
+* $associations = 
+*  [
+*    'HasOne' => [ 
+*      'Profile' =[
+*        'limit' => 5,
+*        'offset' => 2
+*      ],
+*      'Skill' => [
+*        'order' => 'id DESC'
+*      ]
+*    ],
+*    'HasMany' => [
+*	   'Comment' => []  
+*	 ]
+*  ];
+*
+* 関係を表すキーワードは HasOne HasMany BelongsTo BelongsToManyが使用できる
+*
+* @var array　 
 */
 	protected static $associations;
 
 /**
-* レコードオブジェクトが使用できるカラムの制限.
+* レコードオブジェクトが使用できるカラムを指定する.
+*
+* オーバーライド可能なフィールド 
+*
+* 使用するカラムを指定したい時は継承先に次の様にオーバーライドする
+* $useColumn =
+*  [
+*  //field => type
+*    'id' => 'integer',
+*    'name' => 'string',
+*    'age' => 'integer'
+*  ];
+* カラムの型はstring integer double datetime
+* の内いづれかの文字列を使う事ができる 
 *
 * @var array
 */
@@ -39,6 +89,8 @@ class BaseRecord {
 
 /**
 * データベーステーブルのプライマリーキー.
+*
+* オーバーライド可能なフィールド
 *
 * @var string
 */
@@ -54,13 +106,31 @@ class BaseRecord {
 /**
 * レコードオブジェクトのフィールドデータ.
 *
+* データベーステーブルの行と対応している
+* 次の構造をしている
+* $data = 
+*  [
+*   //fieldName => value
+*    'name' => 'foo',
+*    'age' => 20
+*  ]
+*
 * @var array
 */
 	private $data;
 
 /**
 * フィールドデータが変更された時変更をキャッシュする.
+* 
+* フィールドデータとは$this->dataの事
 *
+* 次の構造をしている
+* $dirty = 
+*  [
+*   //fieldName => value
+*    'name' => 'modified'
+*  ]
+*  
 * @var array
 */
 	private $dirty;
@@ -79,6 +149,12 @@ class BaseRecord {
 		}
 	}
 
+/**
+* フィールドデータをセットする.
+*
+* @param array　データベーステーブルの行データ　もしくはそれにあたるデータ
+* @return void 
+*/
 	private function setData($fieldData){
 		foreach($fieldData as $prop => $value){
 			if($prop === static::$primaryKey){
@@ -88,12 +164,20 @@ class BaseRecord {
 		}
 	}
 
+/**
+* レコードオブジェクトのフィールドデータにアクセスする.
+*
+* フィールドデータとは$this->dataの事
+* 参照を渡したのはフィールドデータが配列だった場合楽に変更できるから
+* @param string $name アクセスしたいフィールド名
+* @return mixid アクセスしたいフィールド
+*/
 	public function &__get($name){
 		return $this->get($name);
 	}
 
 
-	public function &get($name){
+	private function &get($name){
 		$value = null;
 		
 		if($name === static::$primaryKey){
@@ -105,12 +189,33 @@ class BaseRecord {
 		return $value;
 	}
 
-
+/**
+* フィールドに値をセットする.
+*
+* ここでいうフィールドとは$this->dataの事
+* 
+* @param string $name セットしたいフィールド名
+* @param mixid $value セットしたい値
+*/
 	public function __set($name, $value){
 		$this->set($name, $value);
 	}
 	
-	protected function set($name, $value){
+/**
+* フィールドの値を適切にセットするメソッド.
+*
+* 次のルールでセットされる
+*
+* １・スキーマに存在フィールドはセットできない
+* ２・値はスキーマと対応した型にキャストされる
+* ３・レコードクラスで関連が定義されていフィールドはセットできない
+* ４・自身フィールド($this->data)の変更を記録する
+*
+* @param string $name フィールド名
+* @param mixid $value セットする値
+* @return void
+*/
+	private function set($name, $value){
 		if($name === static::primaryKey()){
 			return;
 		}
@@ -212,6 +317,8 @@ class BaseRecord {
 /**
 * データベーステーブルの有無を調べる.
 *
+* 使用禁止
+*
 * @param string $tableName 有無を調べたいテーブル名
 * @return boolean
 */
@@ -222,6 +329,8 @@ class BaseRecord {
 /**
 * データベーステーブルのスキーマ情報を取得.
 *
+* 使用禁止
+*
 * @param string $tableName スキーマを取得したいテーブル名
 * @return array
 */
@@ -231,6 +340,8 @@ class BaseRecord {
 
 /**
 * レコードクラスが使用するテーブル名を返す.
+*
+* オーバーライド可能なメソッド
 *
 * 使用するテーブル名がクラス名の複数形でない時はオーバーライドする
 * ＳＴＩする時は必ずルートとなるクラスでオーバーライドする
@@ -308,6 +419,10 @@ class BaseRecord {
 /**
 * レコードオブジェクトのフィールドデータを返す.
 *
+* テストのためのメソッド 
+*
+* 使用禁止
+*
 * @return array
 */
 	public function getData(){
@@ -348,11 +463,12 @@ class BaseRecord {
 /**
 * レコードクラスが使用するカラムのリスト.
 *
+*
 * static::$useColumnをオーバーライドすると、レコードクラスが使用できるカラムを制限することができる.
 *
 * @return array 使用するカラムのリスト
 */
-	protected static function useColumn(){
+	private static function useColumn(){
 		$useColumn = static::$useColumn;
 		$columns = SchemaCollection::schema(static::tableName())
 			->defaults();
@@ -395,6 +511,12 @@ class BaseRecord {
 * 新しいレコードオブジェクトを作成する.
 *
 * @param array $field　レコードオブジェクトのデフォルトの値、nullの場合テーブルのデフォルト値が反映される
+* 次の構造で渡さなければならない
+* $fileds = 
+*  [
+*   //fieldName => value
+*    'name' => 'foo'
+*  ];
 * @return TRW\ActiveRecord\BaseRecord BaseRecordを継承したクラス
 * @throws \Exception ラッピングするクラスが見つからない場合
 */
@@ -436,6 +558,12 @@ class BaseRecord {
 * 新しいレコードオブジェクトの作成と、データベーステーブルへの保存を行う
 *
 * @param array $fields レコードオブジェクトのデフォルトのフィールド値
+* 次の構造で渡さなければならない
+* $fileds = 
+*  [
+*   //fieldName => value
+*    'name' => 'foo'
+*  ];
 * @return \TRW\ActiveRecord\BaseRecord|false レコードの保存に失敗した場合false
 */
 	public static function create(array $fields = []){
@@ -686,12 +814,12 @@ class BaseRecord {
 
 
 /**
-* データーべースでーぶるへの保存時、オブジェクトデータがスキーマに無い物を排除する.
+* データーべーステーブルへの保存時、オブジェクトデータがスキーマに無い物を排除する.
 *
 * @param array $data レコードオブジェクトのフィールドデータ
 * @return array スキーマに存在しているデータ
 */
-	protected static function saveTargetColumns($data){
+	private static function saveTargetColumns($data){
 		$columns = SchemaCollection::schema(static::tableName())
 			->columns();
 		unset($columns[static::$primaryKey]);
@@ -702,7 +830,9 @@ class BaseRecord {
 	}
 
 /**
-* レコードオブジェクトをデータベーステーブルに保存するとき、その値を検査する
+* レコードオブジェクトをデータベーステーブルに保存するとき、その値を検査する.
+*
+* オーバーライド可能なメソッド
 *
 * このメソッドは必要に応じてオーバーライドする。
 * 必ずbool値を返すように実装する.
@@ -956,7 +1086,7 @@ class BaseRecord {
 /**
 * 中間テーブルに関連情報を挿入するためのメソッド.
 * 
-* コア開発者以外触ってはいけません
+* 使用禁止
 *
 * @param string $tableName 中間テーブルの名前
 * @param array 挿入したいデータ
@@ -977,7 +1107,7 @@ class BaseRecord {
 /**
 * 中間テーブルの関連情報を更新するためのメソッド.
 * 
-* コア開発者以外触ってはいけません
+* 使用禁止
 *
 * @param string $tableName 中間テーブルの名前
 * @param array $fields 更新したいデータ
@@ -1005,7 +1135,7 @@ class BaseRecord {
 /**
 * 中間テーブルに関連情報を削除するためのメソッド.
 * 
-* コア開発者以外触ってはいけません
+* 使用禁止
 *
 * @param string $tableName 中間テーブルの名前
 * @param sting $whereName 削除するために検索するフィールド名
@@ -1028,8 +1158,12 @@ class BaseRecord {
 		return $success;
 	}
 
-
-
+/**
+* 使用禁止
+*
+*
+*
+*/
 	public static function whereAll($from, $conditions, $hydrate = ''){
 		$statement = self::$connection->read(
 			$from,
@@ -1055,6 +1189,12 @@ class BaseRecord {
 		return false;
 	}
 
+/**
+* 使用禁止
+*
+*
+*
+*/
 	protected static function hydrate($rowData, $recordClass){
 		$pk = static::$primaryKey;
 
