@@ -469,7 +469,7 @@ class BaseRecord {
 *
 * @return array 使用するカラムのリスト
 */
-	private static function useColumn(){
+	public static function useColumn(){
 		$useColumn = static::$useColumn;
 		$columns = SchemaCollection::schema(static::tableName())
 			->defaults();
@@ -595,20 +595,19 @@ class BaseRecord {
 			return $record;
 		}
 
-		$rowData = self::load($id)->fetch();
-		if($rowData !== false){
-			if(!empty($rowData['type'])){
-				return self::findSTI($rowData);
-			}
+		$record = self::find([
+			'where'=>[
+				'field'=>static::$primaryKey,
+				'comparision' =>'=',
+				'value'=>$id
+			]
+		]);
 
-			return self::find([
-				'where'=>[
-					'field'=>static::$primaryKey,
-					'comparision' =>'=',
-					'value'=>$id
-				]
-			])[0];
+		if(count($record) === 0){
+			return false;
 		}
+
+		return $record[0];
 
 	}
 
@@ -632,69 +631,6 @@ class BaseRecord {
 		);
 
 		return $rowData;
-	}
-
-/**
-* シングルテーブル継承されたオブジェクトでレコードをラッピングして返す.
-*
-* 既にオブジェクトが読み込まれているならIdentityMapからキャッシュを取得する
-* <br>IdentityMapになければキャッシュする
-*
-* 読み込まれたオブジェクトはアソシエーションが定義されていれば<br>
-* AssociationCollectionによって関連オブジェクトがアタッチされる<br>
-* @access private
-* @param array $rowData データベーステーブルから取得したレコード
-* @return \TRW\ActiveRecord\BaseRecord BaseRecordを継承したオブジェクト
-*/
-	private static function findSTI($rowData){
-			$recordClass = static::getNamespace() . '\\' .$rowData['type'];
-			$record = IdentityMap::get($recordClass, $rowData[static::$primaryKey]);
-			if($record !== false){
-				return $record;
-			}
-
-			$rowData = self::loadParent($rowData);
-
-			$newRecord = self::hydrate($rowData, $recordClass);
-			AssociationCollection::attach($newRecord, $recordClass::$associations);
-	
-			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
-		
-			return $newRecord;
-	}
-
-/**
-* レコードクラスの名前空間を取得する.
-*
-* @return string レコードクラスの名前空間
-*/
-	private static function getNamespace(){
-		$fullName = static::className();
-		$split = explode('\\', $fullName);
-		array_pop($split);
-		$namespace = implode('\\', $split);
-
-		return $namespace;
-	}
-
-/**
-* 自身と親クラスで定義されたカラムの行データのリザルトを返す.
-*
-* @param array $rowData データベーステーブルの行データ
-* $return array 自身と親クラスのカラムのリザルト
-*/
-	private static function loadParent($rowData){
-		$namespace = static::getNamespace();
-
-		$STI = $namespace . '\\' .$rowData['type'];
-		$result = [];
-		while($STI !== false){
-			if($STI !== __NAMESPACE__ . '\BaseRecord'){
-				$result = $result +  $STI::load($rowData['id'])->fetch();
-			}
-			$STI = get_parent_class($STI);
-		}	
-		return $result;
 	}
 
 /**
@@ -1014,23 +950,89 @@ class BaseRecord {
 */
 	public static function find($conditions = []){
 		$from = static::tableName();
-		$columns = array_keys(static::useColumn());
-
+		$columns = array_keys( static::useColumn());
 		$statement = self::$connection->read(
 			$from,
 			$columns,
 			$conditions
 		);
 		
-		$hydrate = static::className();
 		$resultSet = [];
 		foreach($statement as $rowData){
-			$record = self::hydrate($rowData, $hydrate);
-			AssociationCollection::attach($record, $hydrate::$associations);
-			$resultSet[] = $record;
+			if(isset($rowData['type'])){
+				$resultSet[] = self::findSTI($rowData);
+			}else{
+				$hydrate = static::className();
+				$record = self::hydrate($rowData, $hydrate);
+				AssociationCollection::attach($record, $hydrate::$associations);
+				$resultSet[] = $record;
+			}
 		}
 		
 		return $resultSet;
+	}
+
+/**
+* シングルテーブル継承されたオブジェクトでレコードをラッピングして返す.
+*
+* 既にオブジェクトが読み込まれているならIdentityMapからキャッシュを取得する
+* <br>IdentityMapになければキャッシュする
+*i
+* 読み込まれたオブジェクトはアソシエーションが定義されていれば<br>
+* AssociationCollectionによって関連オブジェクトがアタッチされる<br>
+* @access private
+* @param array $rowData データベーステーブルから取得したレコード
+* @return \TRW\ActiveRecord\BaseRecord BaseRecordを継承したオブジェクト
+*/
+	private static function findSTI($rowData){
+			$recordClass = static::getNamespace() . '\\' .$rowData['type'];
+			$record = IdentityMap::get($recordClass, $rowData[static::$primaryKey]);
+			if($record !== false){
+				return $record;
+			}
+
+			$rowData = self::loadParent($rowData);
+
+			$newRecord = self::hydrate($rowData, $recordClass);
+			AssociationCollection::attach($newRecord, $recordClass::$associations);
+	
+			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
+		
+			return $newRecord;
+	}
+
+/**
+* レコードクラスの名前空間を取得する.
+*
+* @return string レコードクラスの名前空間
+*/
+	private static function getNamespace(){
+		$fullName = static::className();
+		$split = explode('\\', $fullName);
+		array_pop($split);
+		$namespace = implode('\\', $split);
+
+		return $namespace;
+	}
+
+/**
+* 自身と親クラスで定義されたカラムの行データのリザルトを返す.
+*
+* @param array $rowData データベーステーブルの行データ
+* $return array 自身と親クラスのカラムのリザルト
+*/
+	private static function loadParent($rowData){
+		$namespace = static::getNamespace();
+
+		$STI = $namespace . '\\' .$rowData['type'];
+		$result = [];
+		while($STI !== false){
+			if($STI !== __NAMESPACE__ . '\BaseRecord'){
+				$result = $result +  $STI::load($rowData['id'])->fetch();
+			}
+			$STI = get_parent_class($STI);
+		}	
+		return $result;
 	}
 
 /**
