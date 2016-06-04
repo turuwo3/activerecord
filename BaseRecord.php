@@ -161,6 +161,12 @@ class BaseRecord {
 		}
 	}
 
+	public static function associations(){
+		return static::$associations;
+	}
+
+
+
 /**
 * フィールドデータをセットする.
 *
@@ -827,7 +833,7 @@ class BaseRecord {
 * @param array $data レコードオブジェクトのデータ
 * @return boolean 挿入に失敗するとfalse 成功するとture
 */
-	private function insert($data){
+	public function insert($data){
 
 		if(!$this->validate()){
 			return false;
@@ -858,7 +864,7 @@ class BaseRecord {
 * @return boolean 挿入に失敗するとfalse 成功するとture
 * @throws \Exception レコードオブジェクトのidが設定されていない時
 */
-	private function update($fields = null){
+	public function update($fields = null){
 
 		if($fields === null){
 			$fields = $this->data;
@@ -1233,7 +1239,7 @@ class BaseRecord {
 *
 *
 */
-	protected static function hydrate($rowData, $recordClass){
+	public static function hydrate($rowData, $recordClass){
 		$pk = static::$primaryKey;
 
 		if(class_exists($recordClass)){
