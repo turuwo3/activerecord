@@ -3,19 +3,13 @@ namespace TRW\ActiveRecord\Strategy;
 
 use TRW\ActiveRecord\AssociationCollection;
 use TRW\ActiveRecord\SchemaCollection;
-use TRW\ActiveRecord\Strategy\InheritanceStrategy;
+use TRW\ActiveRecord\Strategy\AbstractStrategy;
 use TRW\ActiveRecord\RecordOperator;
 use TRW\ActiveRecord\Util;
 
-class STIStrategy implements InheritanceStrategy {
+class STIStrategy extends AbstractStrategy {
 
 	private static $instance = null;
-
-	private $operator;
-
-	public function __construct($operator){
-		$this->operator = $operator;
-	}
 
 
 /**
@@ -102,23 +96,6 @@ class STIStrategy implements InheritanceStrategy {
 
 			return $fields;
 	}
-/**
-* 配列をフィルタリングして返す.
-*
-* @param array $filter 排除したいデータのキーリスト['name', 'user_id']<br>
-* @param array $data　フィルタリングされるデータ<br>
-* ['id'=>1, 'name'=>'foo', 'user_id'=>1, 'age'=>20]
-* $return array フィルタリングされたデータ['id'=>1, 'age'=>20]
-*/
-	private function filterData($filter, $data){
-		$results = [];
-		foreach($data as $k => $v){
-			if(array_key_exists($k, $filter)){
-				$results[$k] = $v;
-			}
-		}
-		return $results;
-	}
 
 /**
 * シングルテーブル継承時に使用される。親クラス使用するカラムのリザルトを返す.
@@ -173,27 +150,6 @@ class STIStrategy implements InheritanceStrategy {
 	}
 
 
-	public  function hydrate($rowData, $recordClass){
-		$pk = $recordClass::primaryKey();
-
-		if(class_exists($recordClass)){
-			$record = $this->operator->getCache($recordClass, $rowData[$pk]);
-
-			if($record !== false){
-				return $record;
-			}
-
-			$newRecord = $recordClass::newRecord($rowData);
-			$newRecord->id = $rowData[$pk];
-
-			$this->operator->setCache($newRecord);
-
-			return $newRecord;
-		}else{
-			throw new Exception('class not found ' . $recordClass);
-		}
-
-	}
 
 
 }

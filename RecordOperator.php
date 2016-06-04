@@ -118,7 +118,6 @@ class RecordOperator {
 		 );
 
 		if($success){
-			$recordObject->setData($fields);
 			return true;
 		}else{
 			return false;
