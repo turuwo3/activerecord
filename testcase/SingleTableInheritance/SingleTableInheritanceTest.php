@@ -163,9 +163,11 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 				'bowling_average' => 100
 			],
 			Player::read($bowller->id)->getData());
-		
+	}
 
 
+	public function testFindAll(){
+		//print_r(Player::findAll());
 	}
 
 

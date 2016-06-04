@@ -5,6 +5,8 @@ use TRW\ActiveRecord\BaseRecord;
 
 class Player extends BaseRecord {
 
+	protected static $inheritance = 'STI';
+
 	protected static $useColumn = [
 		'name' => 'text'
 	];

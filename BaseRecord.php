@@ -67,6 +67,19 @@ class BaseRecord {
 	protected static $associations;
 
 /**
+* テーブル継承タイプ.
+*
+* オーバーライド可能なフィールド<br>
+*
+* テーブル継承時は必ずオーバーライトしてください<br>
+* 現在サポートしている継承タイプはSTIのみとなっております<br>
+* なのでオーバーライドするときはstaic protected $inheritance = 'STI'<br>
+* としてください
+* @var string
+*/
+	protected static $inheritance = false;
+
+/**
 * レコードオブジェクトが使用できるカラムを指定する.
 *
 * オーバーライド可能なフィールド 
@@ -949,6 +962,11 @@ class BaseRecord {
 * @return array レコードオブジェクトのリスト
 */
 	public static function find($conditions = []){
+
+		if(self::inheritanceCheck()){
+			return self::findSTI($conditions);
+		}
+
 		$from = static::tableName();
 		$columns = array_keys( static::useColumn());
 		$statement = self::$connection->read(
@@ -959,17 +977,20 @@ class BaseRecord {
 		
 		$resultSet = [];
 		foreach($statement as $rowData){
-			if(isset($rowData['type'])){
-				$resultSet[] = self::findSTI($rowData);
-			}else{
-				$hydrate = static::className();
-				$record = self::hydrate($rowData, $hydrate);
-				AssociationCollection::attach($record, $hydrate::$associations);
-				$resultSet[] = $record;
-			}
+			$hydrate = static::className();
+			$record = self::hydrate($rowData, $hydrate);
+			AssociationCollection::attach($record, $hydrate::$associations);
+			$resultSet[] = $record;
 		}
 		
 		return $resultSet;
+	}
+
+	private function inheritanceCheck(){
+		if(static::$inheritance !== false){
+			return true;
+		}
+		return false;
 	}
 
 /**
@@ -984,21 +1005,30 @@ class BaseRecord {
 * @param array $rowData データベーステーブルから取得したレコード
 * @return \TRW\ActiveRecord\BaseRecord BaseRecordを継承したオブジェクト
 */
-	private static function findSTI($rowData){
-			$recordClass = static::getNamespace() . '\\' .$rowData['type'];
-			$record = IdentityMap::get($recordClass, $rowData[static::$primaryKey]);
-			if($record !== false){
-				return $record;
-			}
+	private static function findSTI($conditions = []){
+		$from = static::tableName();
+		$columns = array_keys( static::useColumn());
+		$statement = self::$connection->read(
+			$from,
+			$columns,
+			$conditions
+		);
 
-			$rowData = self::loadParent($rowData);
+		$result = [];
+		foreach($statement as $rowData){
+			$result[] = self::loadParent($rowData);
+		}
 
-			$newRecord = self::hydrate($rowData, $recordClass);
-			AssociationCollection::attach($newRecord, $recordClass::$associations);
-	
-			IdentityMap::set(get_class($newRecord), $newRecord->id, $newRecord);
+		$resultSet = [];
+		$namespace = self::getNamespace();
+		foreach($result as $record){
+			$fullName = $namespace . '\\' . $record['type'];
+			$newRecord = self::hydrate($record, $fullName);
+			AssociationCollection::attach($newRecord, $fullName::$associations);
+			$resultSet[] = $newRecord;
+		}
 		
-			return $newRecord;
+		return $resultSet;
 	}
 
 /**
@@ -1207,7 +1237,7 @@ class BaseRecord {
 		$pk = static::$primaryKey;
 
 		if(class_exists($recordClass)){
-			$record = IdentityMap::get(static::className(), $rowData[$pk]);
+			$record = IdentityMap::get($recordClass, $rowData[$pk]);
 
 			if($record !== false){
 				return $record;
