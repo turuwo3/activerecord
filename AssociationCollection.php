@@ -9,7 +9,9 @@ use TRW\ActiveRecord\Association\BelongsToMany;
 /**
 * このクラスはレコードクラスの関連情報の保持と関連するレコードオブジェクトの保存を行う.
 *
-* このクラスは\TRW\ActiveRecord\BaseRecordが内部で利用するためだけのクラスのため一般開発者はこのクラスを使用してはならない
+* このクラスは\TRW\ActiveRecord\BaseRecordが<br>
+* 内部で利用するためだけのクラスのため<br>
+* 一般開発者はこのクラスを使用してはならない
 *
 * @access private
 */
@@ -18,26 +20,26 @@ class AssociationCollection {
 /**
 * レコードクラス毎のアソシエーション情報を保持している.
 *
-*その構造は以下のようになっている
-* $assoiations =
+*その構造は以下のようになっている<br>
+* $assoiations = <br>
 * [
-*   'User' => [
-*      'type' => [
-*	    new HasOne('App\Model\User', 'App\Model\Profile'),
-*		new HasMany('App\Model\User', 'App\Model\Comment')
-*	  ]
-*   ],
-*	'Profile' => [
-*	  'type' => [
-*	    new BelongsTo('App\Model\Profile', 'App\Model\User')
-*	  ]
-*	],
-*	'Comment' => [
-*	  'type' => [
-*	    new BelongsTo('App\Model\Comment', 'App\Model\User')
-*	  ]
-*	]
-* ]
+*   'User' => [ <br>
+*      'type' => [ <br>
+*	    new HasOne('App\Model\User', 'App\Model\Profile'),<br>
+*		new HasMany('App\Model\User', 'App\Model\Comment') <br>
+*	  ]<br>
+*   ],<br>
+*	'Profile' => [<br>
+*	  'type' => [<br>
+*	    new BelongsTo('App\Model\Profile', 'App\Model\User')<br>
+*	  ]<br>
+*	],<br>
+*	'Comment' => [ <br>
+*	  'type' => [ <br>
+*	    new BelongsTo('App\Model\Comment', 'App\Model\User')<br>
+*	  ]<br>
+*	]<br>
+* ]<br>
 *
 *
 * @var array レコードクラス毎のアソシエーション情報
@@ -112,7 +114,7 @@ class AssociationCollection {
 /**
 * レコードクラスのアソシエーション情報から適切なアソシエーションクラスを生成する.
 *
-* 名前空間が動的インスタンスの生成の影響を受けないため、
+* 名前空間が動的インスタンスの生成の影響を受けないため、<br>
 * メソッド内で直接生成した
 *
 * @param string $own アソシエーションを定義したクラス
@@ -185,13 +187,19 @@ class AssociationCollection {
 		return $result;
 	}
 	
-
+/**
+* レコードクラスの関連情報を取得する.
+*
+* @param 関連を取得したいレコードクラス名
+* @return boolean|array 関連データがあればarray　なければfalse 
+*/
 	public static function get($tableName){
 		if(empty(self::$associations[$tableName])){
 					return false;
 		}
 		return self::$associations[$tableName];
 	}
+
 /**
 * レコードオブジェクト保持している関連レコードオブジェクトを保存する.
 *
@@ -222,7 +230,8 @@ class AssociationCollection {
 /**
 * レコードオブジェクトが属している親を保存する.
 *
-* ここでいう親とは継承関係の親クラスを指すものではなく、アソシエーション上の親の事
+* ここでいう親とは継承関係の親クラスを指すものではなく<br>
+* アソシエーション上の親の事
 *
 * @param \TRW/ActiveRecord\BaseRecord $record　レコードオブジェクト
 * @return boolean レコードの保存に成功すれば true 失敗すればfalse
@@ -239,7 +248,8 @@ class AssociationCollection {
 /**
 * レコードオブジェクトが保持している子を保存する.
 *
-* ここでいう子とは継承関係の子クラスを指すものではなく、アソシエーション上の子の事
+* ここでいう子とは継承関係の子クラスを指すものではなく<br>
+* アソシエーション上の子の事
 *
 * @param \TRW/ActiveRecord\BaseRecord $record　レコードオブジェクト
 * @return boolean レコードの保存に成功すれば true 失敗すればfalse

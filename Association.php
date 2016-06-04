@@ -7,7 +7,7 @@ use TRW\ActiveRecord\Util;
 /**
 * このクラスはAssociationのための基底クラス.
 *
-* HasOne HasMany BelongsTo BelongsToManyはこのクラスを継承している 
+* HasOne, HasMany, BelongsTo, BelongsToManyはこのクラスを継承している 
 *
 * @access private
 */
@@ -15,6 +15,7 @@ abstract class Association {
 
 /**
 * レコードクラスの名前空間.
+*
 * @var string
 */
 	private $recordNamespace;
@@ -33,6 +34,16 @@ abstract class Association {
 */
 	private $target;
 
+/**
+* 関連レコードを取得する際のデータの制御.
+*
+* @var array 次のキーが使える<br>
+* $option = [<br>
+*   'order' => 'id DESC', <br>
+*   'limit' => 20, <br>
+*   'offset' => 5 <br>
+*  ];
+*/
 	private $option = [];
 	    
 	public function __construct($source, $target, $option = []){

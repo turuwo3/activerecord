@@ -16,7 +16,8 @@ abstract class Driver {
 	];
 
 /**
-* 
+* コンストラクタではオーバーライドされたconnection($config)<br>
+* メソッドでコネクションを確立させなければならない<br> 
 *
 * @param array $config データベースの接続情報など
 */
@@ -28,7 +29,7 @@ abstract class Driver {
 /**
 * コネクションを設定する.
 * 
-* コネクションはPDOクラスでなければならない
+* コネクションはPDOクラスでなければならない<br>
 * 
 * @param array $config データベース接続、設定に必要な情報
 * @return void
@@ -53,33 +54,33 @@ abstract class Driver {
 /**
 * テーブルのスキーマを返す.
 *
-* スキーマは次の構造で返さなければならない
+* スキーマは次の構造で返さなければならない<br>
 * 
-*	$schema = [
-*		$filed => [
-*			'type' => type,
-*			'null' => boolean,
-*			'key' => boolean,
-*			'default' => '',
-*			'extra' => ''
-*		],
-*      :
-*      :
-*      : 
-*	];	
+*	$schema = [ <br>
+*		$filed => [ <br>
+*			'type' => type, <br>
+*			'null' => boolean, <br>
+*			'key' => boolean, <br>
+*			'default' => '', <br>
+*			'extra' => '' <br>
+*		],<br>
+*          : <br>
+*          : <br>
+*          : <br>
+*	];<br>
 *
 * (例
-*	$example = [
-*		'name' => [
-*			'type' => text,
-*			'null' => true,
-*			'key' => false,
-*			'default' => 'anonymous',
-*			'extra' => ''
-*		],
-*      :
-*      :
-*      : 
+*	$example = [ <br>
+*		'name' => [ <br>
+*			'type' => text, <br>
+*			'null' => true, <br>
+*			'key' => false, <br>
+*			'default' => 'anonymous', <br>
+*			'extra' => '' <br>
+*		],<br>
+*          : <br>
+*          : <br>
+*          :  <br>
 *	];	
 *
 */
@@ -129,31 +130,31 @@ abstract class Driver {
 *
 * @param string $tableName 取得したいテーブル名 ユーザーからの値を渡してはならない
 * @param array 取得対象のカラム名　ユーザーからの値を渡してはならない
-* 次の構造で渡さなければならない
-* $fields = 
-*  [
-*    'id',
-*    'name',
-*	 'age'
-*  ];
+* 次の構造で渡さなければならない<br>
+* $fields =  <br>
+*  [ <br>
+*    'id', <br>
+*    'name', <br>
+*	 'age' <br>
+*  ];<br>
 * @param array $conditions
-  以下のキーを使うことができる
-* $conditions =
-*  [
-*	 'where'=>[
-*      'field'=>'name',
-*      'comparision'=>'=',
-*      'value'=>'foo'
-* 	 ],
-*    'and' => [
-*      'field' => 'age',
-*      'comparition' => '>',
-*      'value' => 20
-*    ],
-* 	 'order' => 'id DESC',
-* 	 'limit' => 1,
-* 	 'offset' => 3
-*  ];
+  以下のキーを使うことができる<br>
+* $conditions = <br>
+*  [<br>
+*	 'where'=>[ <br>
+*      'field'=>'name', <br>
+*      'comparision'=>'=', <br>
+*      'value'=>'foo'<br>
+* 	 ],<br>
+*    'and' => [<br>
+*      'field' => 'age',<br>
+*      'comparition' => '>',<br>
+*      'value' => 20 <br>
+*    ],<br>
+* 	 'order' => 'id DESC', <br>
+* 	 'limit' => 1, <br>
+* 	 'offset' => 3 <br>
+*  ];<br>
 *
 * @return PDOStatement|false executeに失敗したらfalseを返す
 */
@@ -176,14 +177,14 @@ abstract class Driver {
 * @param array $fileds 取得したいカラム名　ユーザーからの値を渡してはならない
 * @param array $conditions 検索条件
 * @return array セレクト文とバインドバリューのセット
-* 次の構造をした配列を返す
-* $queryObject = 
-*  [
-*    'sql' => "SELECT id,name,age FROM users WHERE id=:id",
-*    'bindValue' => [
-*      ':id' => 1
-*    ]
-*  ];
+* 次の構造をした配列を返す<br>
+* $queryObject = <br>
+*  [<br>
+*    'sql' => "SELECT id,name,age FROM users WHERE id=:id",<br>
+*    'bindValue' => [ <br>
+*      ':id' => 1<br>
+*    ]<br>
+*  ];<br>
 *
 *
 */
@@ -205,33 +206,33 @@ abstract class Driver {
 *
 *
 * @param array $conditions
-  以下のキーを使うことができる
-* $conditions =
-*  [
-*	 'where'=>[
-*      'field'=>'name',
-*      'comparision'=>'=',
-*      'value'=>'foo'
-* 	 ],
-*    'and' => [
-*      'field' => 'age',
-*      'comparition' => '>',
-*      'value' => 20
-*    ],
-* 	 'order' => 'id DESC',
-* 	 'limit' => 1,
-* 	 'offset' => 3
-*  ];
+* 以下のキーを使うことができる<br>
+* $conditions = <br>
+*  [ <br>
+*	 'where'=>[ <br>
+*      'field'=>'name', <br>
+*      'comparision'=>'=',<br>
+*      'value'=>'foo' <br>
+* 	 ],<br>
+*    'and' => [ <br>
+*      'field' => 'age', <br>
+*      'comparition' => '>', <br>
+*      'value' => 20 <br>
+*    ],<br>
+* 	 'order' => 'id DESC',<br>
+* 	 'limit' => 1, <br>
+* 	 'offset' => 3 <br>
+*  ];<br>
 * @return array 条件文とバインドバリューのセット
-* 次の構造をした配列を返す
-* $queryObject = 
-*  [
+* 次の構造をした配br列を返す<br>
+* $queryObject = <br>
+*  [<br>
 *    'sql' => "WHERE name=:name AND age>:age LIMIT 1 OFFSET 3 ORDER BY id DESC",
-*    'bindValue' => [
-*      ':name' => 'foo',
-*      ':age' => 20
-*    ]
-*  ];
+*    'bindValue' => [<br>
+*      ':name' => 'foo',<br>
+*      ':age' => 20<br>
+*    ]<br>
+*  ];<br>
 */
 	protected function conditions($conditions){
 		extract($conditions);

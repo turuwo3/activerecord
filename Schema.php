@@ -32,19 +32,19 @@ class Schema {
 /**
 * テーブルのスキーマ.
 *
-* 次の構造をしている
-*	$schema = [
-*		'name' => [
-*			'type' => text,
-*			'null' => true,
-*			'key' => false,
-*			'default' => 'anonymous',
-*			'extra' => ''
-*		],
-*      :
-*      :
-*      : 
-*	];	
+* 次の構造をしている<br>
+*	$schema = [ <br>
+*		'name' => [ <br>
+*			'type' => text, <br>
+*			'null' => true, <br> 
+*			'key' => false, <br>
+*			'default' => 'anonymous', <br>
+*			'extra' => ''<br>
+*		],<br>
+*          :<br>
+*          :<br>
+*          : <br>
+*	];<br>
 *	
 *	@var array
 */
@@ -52,13 +52,14 @@ class Schema {
 
 /**
 * カラムの名前と値.
-* 次の構造をしている
-* $columns =
-* [
-*  'id' => 1,
-*  'name' => 'foo'
-*  'age' => 20,
-* ]
+*
+* 次の構造をしている<br>
+* $columns =<br>
+*  [<br>
+*   'id' => 1, <br>
+*   'name' => 'foo' <br>
+*   'age' => 20, <br>
+*  ];<br>
 *
 * @var array;
 */

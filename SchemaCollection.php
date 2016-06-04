@@ -4,23 +4,25 @@ namespace TRW\ActiveRecord;
 /**
 * このクラスはレコードクラス毎のスキーマオブジェクトを保持するクラス.
 *
-* このクラスは\TRW\ActiveRecord\BaseRecordがないぶで使用するためだけのクラスのため一般開発者はこのクラスを使用してはならない
+* このクラスは\TRW\ActiveRecord\BaseRecordが<br>
+* 内部で使用するためだけのクラスのため<br>
+* 一般開発者はこのクラスを使用してはならない
 *
 * @access private
 */
 class SchemaCollection {
 
 /**
-* レコードクラス毎のスキーマオブジェクトを保持する
+* レコードクラス毎のスキーマオブジェクトを保持する.
 * 
-* $map = 
-* [
-*  'User' => new Shema(User::tableName()),
-*  'Comment' => new Schema(Comment::tableName());
-*     :
-*     :
-*	  :
-* ];
+* $map = <br>
+*  [<br>
+*    'User' => new Shema(User::tableName()),<br>
+*   'Comment' => new Schema(Comment::tableName());<>br
+*      :<br>
+*      :<br>
+* 	  :<br>
+*  ];<br>
 *
 *@var array
 */
@@ -31,7 +33,7 @@ class SchemaCollection {
 /**
 * テーブルのスキーマオブジェクトを返す.
 *
-* スキーマオブジェクトが既にあれば、そのスキーマオブジェクトを返す
+* スキーマオブジェクトが既にあれば、そのスキーマオブジェクトを返す<br>
 * なければ保持する
 * 
 * @return \TRW\ActiveRecord\Schema

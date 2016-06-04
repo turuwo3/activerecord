@@ -15,17 +15,16 @@ use TRW\ActiveRecord\AssociatoinCollection;
 /**
 * レコードクラスの基底となるクラス.
 *
-* このクラスはデータベーステーブルの行をオブジェクトでラッピングし、
+* このクラスはデータベーステーブルの行をオブジェクトでラッピングし、<br>
 * データの挿入、保存などを行うアクティブレコードを模している。
 *
 * 開発者はこのクラスを継承することでアクティブレコードの機能を利用することができます
 *
 * このクラスを継承するクラスは必要に応じてドメインロジックを実装してください
 *
-* 継承するクラスは、このクラスの「オーバーライド可能なフィールド」もしくは、
-* 「オーバーライド可能なメソッド」のコメントが無い物はオーバーライドしてはいけません
+* 継承するクラスは、このクラスの「オーバーライド可能なフィールド」もしくは<br> 「オーバーライド可能なメソッド」のコメントが無い物はオーバーライドしてはいけません
 *
-* またpublic、protectedなフィールド、メソッドであっても
+* またpublic、protectedなフィールド、メソッドであっても<br>
 * 「使用禁止」のコメントがあるものは使用してはいけません
 *
 */
@@ -44,20 +43,20 @@ class BaseRecord {
 *
 * オーバーライド可能なフィールド
 *
-* レコードクラスの関連を定義したい場合は継承先で次の様にオーバーライドする
-* $associations = 
-*  [
-*    'HasOne' => [ 
-*      'Profile' =[
-*        'limit' => 5,
-*        'offset' => 2
-*      ],
-*      'Skill' => [
-*        'order' => 'id DESC'
-*      ]
-*    ],
-*    'HasMany' => [
-*	   'Comment' => []  
+* レコードクラスの関連を定義したい場合は継承先で次の様にオーバーライドする<br>
+* $associations = <br>
+*  [<br>
+*    'HasOne' => [ <br>
+*      'Profile' =[ <br>
+*        'limit' => 5, <br>
+*        'offset' => 2 <br>
+*      ],<br>
+*      'Skill' => [ <br>
+*        'order' => 'id DESC' <br>
+*      ]<br>
+*    ],<br>
+*    'HasMany' => [ <br>
+*	   'Comment' => [] <br> 
 *	 ]
 *  ];
 *
@@ -72,15 +71,15 @@ class BaseRecord {
 *
 * オーバーライド可能なフィールド 
 *
-* 使用するカラムを指定したい時は継承先に次の様にオーバーライドする
-* $useColumn =
-*  [
-*  //field => type
-*    'id' => 'integer',
-*    'name' => 'string',
-*    'age' => 'integer'
-*  ];
-* カラムの型はstring integer double datetime
+* 使用するカラムを指定したい時は継承先に次の様にオーバーライドする<br>
+* $useColumn = <br>
+*  [ <br>
+*  //field => type <br>
+*    'id' => 'integer', <br>
+*    'name' => 'string', <br>
+*    'age' => 'integer' <br>
+*  ]; <br>
+* カラムの型はstring, integer, double, datetime<br>
 * の内いづれかの文字列を使う事ができる 
 *
 * @var array
@@ -106,13 +105,13 @@ class BaseRecord {
 /**
 * レコードオブジェクトのフィールドデータ.
 *
-* データベーステーブルの行と対応している
-* 次の構造をしている
-* $data = 
-*  [
-*   //fieldName => value
-*    'name' => 'foo',
-*    'age' => 20
+* データベーステーブルの行と対応している<br>
+* 次の構造をしている<br>
+* $data = <br>
+*  [ <br>
+*   //fieldName => value <br>
+*    'name' => 'foo', <br>
+*    'age' => 20 <br>
 *  ]
 *
 * @var array
@@ -124,12 +123,12 @@ class BaseRecord {
 * 
 * フィールドデータとは$this->dataの事
 *
-* 次の構造をしている
-* $dirty = 
-*  [
-*   //fieldName => value
-*    'name' => 'modified'
-*  ]
+* 次の構造をしている<br>
+* $dirty =  <br>
+*  [<br>
+*   //fieldName => value <br>
+*    'name' => 'modified'<br>
+*  ]<br>
 *  
 * @var array
 */
@@ -167,10 +166,10 @@ class BaseRecord {
 /**
 * レコードオブジェクトのフィールドデータにアクセスする.
 *
-* フィールドデータとは$this->dataの事
-* 参照を渡したのはフィールドデータが配列だった場合楽に変更できるから
-* @param string $name アクセスしたいフィールド名
-* @return mixid アクセスしたいフィールド
+* フィールドデータとは$this->dataの事<br>
+* 参照を渡したのはフィールドデータが配列だった場合楽に変更できるから<br>
+* @param string $name アクセスしたいフィールド名<br>
+* @return mixid アクセスしたいフィールド<br>
 */
 	public function &__get($name){
 		return $this->get($name);
@@ -206,10 +205,10 @@ class BaseRecord {
 *
 * 次のルールでセットされる
 *
-* １・スキーマに存在フィールドはセットできない
-* ２・値はスキーマと対応した型にキャストされる
-* ３・レコードクラスで関連が定義されていフィールドはセットできない
-* ４・自身フィールド($this->data)の変更を記録する
+* １・スキーマに存在しないフィールドはセットできない<br>
+* ２・値はスキーマと対応した型にキャストされる<br>
+* ３・レコードクラスで関連が定義されていないフィールドはセットできない<br>
+* ４・自身フィールド($this->data)の変更を記録する<br>
 *
 * @param string $name フィールド名
 * @param mixid $value セットする値
@@ -343,11 +342,11 @@ class BaseRecord {
 *
 * オーバーライド可能なメソッド
 *
-* 使用するテーブル名がクラス名の複数形でない時はオーバーライドする
-* ＳＴＩする時は必ずルートとなるクラスでオーバーライドする
+* 使用するテーブル名がクラス名の複数形でない時はオーバーライドする<br>
+* ＳＴＩする時は必ずルートとなるクラスでオーバーライドする<br>
 *
-* プロパティではなくメソッドにした理由はget_called_class()が使えるから
-* プロパティでは継承先で常にテーブル名を定義しなくてはいけなくなる
+* プロパティではなくメソッドにした理由はget_called_class()が使えるから<br>
+* プロパティでは継承先で常にテーブル名を定義しなくてはいけなくなる<br>
 *
 * @return string レコードクラスが使用するテーブル名
 */
@@ -398,7 +397,7 @@ class BaseRecord {
 /**
 * レコードオブジェクトが新たに作成されたかどうか検査する.
 *
-* レコードオブジェクトがデータベーステーブルに保存済みでないものは新しく作成されたオブジェクトとみなす.
+* レコードオブジェクトがデータベーステーブルに保存済みでないものは新しく<br* > 作成されたオブジェクトとみなす<br>
 *
 * @return boolean 新しく作成されたオブジェクトであればtrue
 */
@@ -446,8 +445,9 @@ class BaseRecord {
 /**
 * 配列をフィルタリングして返す.
 *
-* @param array $filter 排除したいデータのキーリスト['name', 'user_id']
-* @param array $data　フィルタリングされるデータ ['id'=>1, 'name'=>'foo', 'user_id'=>1, 'age'=>20]
+* @param array $filter 排除したいデータのキーリスト['name', 'user_id']<br>
+* @param array $data　フィルタリングされるデータ<br>
+* ['id'=>1, 'name'=>'foo', 'user_id'=>1, 'age'=>20]
 * $return array フィルタリングされたデータ['id'=>1, 'age'=>20]
 */
 	private static function filterData($filter, $data){
@@ -464,7 +464,8 @@ class BaseRecord {
 * レコードクラスが使用するカラムのリスト.
 *
 *
-* static::$useColumnをオーバーライドすると、レコードクラスが使用できるカラムを制限することができる.
+* static::$useColumnをオーバーライドすると、<br>
+* レコードクラスが使用できるカラムを制限することができる
 *
 * @return array 使用するカラムのリスト
 */
@@ -510,13 +511,14 @@ class BaseRecord {
 /**
 * 新しいレコードオブジェクトを作成する.
 *
-* @param array $field　レコードオブジェクトのデフォルトの値、nullの場合テーブルのデフォルト値が反映される
-* 次の構造で渡さなければならない
-* $fileds = 
-*  [
-*   //fieldName => value
-*    'name' => 'foo'
-*  ];
+* @param array $field　レコードオブジェクトのデフォルトの値<br>
+* nullの場合テーブルのデフォルト値が反映される<br>
+* 次の構造で渡さなければならない<br>
+* $fileds = <br>
+*  [ <br>
+*   //fieldName => value <br>
+*    'name' => 'foo' <br>
+*  ];<br>
 * @return TRW\ActiveRecord\BaseRecord BaseRecordを継承したクラス
 * @throws \Exception ラッピングするクラスが見つからない場合
 */
@@ -555,15 +557,15 @@ class BaseRecord {
 	}
 
 /**
-* 新しいレコードオブジェクトの作成と、データベーステーブルへの保存を行う
+* 新しいレコードオブジェクトの作成と、データベーステーブルへの保存を行う.
 *
-* @param array $fields レコードオブジェクトのデフォルトのフィールド値
+* @param array $fields レコードオブジェクトのデフォルトのフィールド値<br>
 * 次の構造で渡さなければならない
-* $fileds = 
-*  [
-*   //fieldName => value
-*    'name' => 'foo'
-*  ];
+* $fileds = <br>
+*  [<br>
+*   //fieldName => value<br>
+*    'name' => 'foo' <br>
+*  ];<br>
 * @return \TRW\ActiveRecord\BaseRecord|false レコードの保存に失敗した場合false
 */
 	public static function create(array $fields = []){
@@ -578,9 +580,10 @@ class BaseRecord {
 /**
 * レコードオブジェクトを一件読み込む.
 *
-* データべーステーブルから行を一軒読み込みオブジェクトでラッピングするが、
-* すでに読み込まれていた場合IdentityMapのキャッシュから読み込む
-* キャッシュにない場合はIdentityMapに保存する
+* データべーステーブルから行を一件読み込みオブジェクトで
+* ラッピングするが、<br>
+* すでに読み込まれていた場合IdentityMapのキャッシュから読み込む<br>
+* キャッシュにない場合はIdentityMapに保存する<br>
 *
 * @param int $id 読み込みたいレコードのid
 * @return \TRW\ActiveRecord\BaseRecord　BaseRecordを継承したクラス
@@ -635,11 +638,11 @@ class BaseRecord {
 * シングルテーブル継承されたオブジェクトでレコードをラッピングして返す.
 *
 * 既にオブジェクトが読み込まれているならIdentityMapからキャッシュを取得する
-* IdentityMapになければキャッシュする
+* <br>IdentityMapになければキャッシュする
 *
-* 読み込まれたオブジェクトはアソシエーションが定義されていれば
-* AssociationCollectionによって関連オブジェクトがアタッチされる
-*
+* 読み込まれたオブジェクトはアソシエーションが定義されていれば<br>
+* AssociationCollectionによって関連オブジェクトがアタッチされる<br>
+* @access private
 * @param array $rowData データベーステーブルから取得したレコード
 * @return \TRW\ActiveRecord\BaseRecord BaseRecordを継承したオブジェクト
 */
@@ -697,10 +700,11 @@ class BaseRecord {
 /**
 * レコードオブジェクトのデータをデータベースに保存する.
 *
-* そのオブジェクトが新たに作成されたものであればinsertする
-* 既に保存済みのものであればupdateする
+* そのオブジェクトが新たに作成されたものであればinsertする<br>
+* 既に保存済みのものであればupdateする<br>
 *
-* オブジェクトにアソシエーションが定義されていればAssociationCollectionによって関連オブジェクトデータもsaveされる
+* オブジェクトにアソシエーションが定義されていれば<br>
+* AssociationCollectionによって関連オブジェクトデータもsaveされる
 * @return boolean saveに失敗するとfalse　成功するとtrue
 */
 	public function save(){
@@ -834,9 +838,9 @@ class BaseRecord {
 *
 * オーバーライド可能なメソッド
 *
-* このメソッドは必要に応じてオーバーライドする。
-* 必ずbool値を返すように実装する.
-* 必要に応じてsetErrorでエラーメッセージをセットする
+* このメソッドは必要に応じてオーバーライドする<br>
+* 必ずbool値を返すように実装する<br>
+* 必要に応じてsetErrorでエラーメッセージをセットする<br>
 *
 * @return boolean
 */
@@ -900,7 +904,8 @@ class BaseRecord {
 * レコードオブジェクトのデータをデータベーステーブルに更新する.
 *
 * @access private 
-* @param array $fields 更新したいデータ。 レコードオブジェクトのデータnullの場合オブジェクトのデータ
+* @param array $fields 更新したいデータ<br>
+* nullの場合オブジェクトのデータ
 * @return boolean 挿入に失敗するとfalse 成功するとture
 * @throws \Exception レコードオブジェクトのidが設定されていない時
 */
@@ -988,20 +993,21 @@ class BaseRecord {
 * レコードオブジェクトを取得する
 *
 * 条件にマッチしたレコードオブジェクトのリストを取得する
-* 条件は次のように定義する
-* $conditions =
-*  [
-*     'where' => [
-*        'field' => 'age',
-*        'comparision' => '>',
-*        'value' => 20
-*     ],
-*     'limit' => 5,
-*     'offset' => 2,
-*     'order' => 'id DESC'
-* ];
+* 条件は次のように定義する<br>
+* $conditions = <br>
+*  [ <br>
+*     'where' => [ <br>
+*        'field' => 'age', <br>
+*        'comparision' => '>', <br>
+*        'value' => 20 <br>
+*     ],<br>
+*     'limit' => 5, <br>
+*     'offset' => 2, <br>
+*     'order' => 'id DESC'<br>
+* ]; <br>
 *
-* レコードクラスにアソシエーションが定義されていた場合AssociationCollectionによって関連レコードオブジェクトがアタッチされる
+* レコードクラスにアソシエーションが定義されていた場合<br>
+* AssociationCollectionによって関連レコードオブジェクトがアタッチされる<br>
 *
 * @param array $conditions 引数を省略した場合すべてのレコードオブジェクトのリストが取得される
 * @return array レコードオブジェクトのリスト
