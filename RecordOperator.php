@@ -22,7 +22,6 @@ class RecordOperator implements RecordOperatorInterface{
 			$columns,
 			$conditions
 		);
-		
 		return $statement;
 	}
 
@@ -55,13 +54,6 @@ class RecordOperator implements RecordOperatorInterface{
 */
 	private function saveTargetColumns($className, $record){
 		$useColumn = $this->record->useColumn($className);
-		
-		if($useColumn === null){
-			return $columns;
-		}
-		if(array_key_exists('type', $columns)){
-			$useColumn['type'] = $columns['type'];
-		}
 
 		$result = $this->filterData($useColumn, $record->getData());
 
@@ -75,12 +67,12 @@ class RecordOperator implements RecordOperatorInterface{
 			return false;
 		}
 
-		$success = $this->connection->insert($this->record->tableName($className), $filds);
+		$success = $this->connection->insert($this->record->tableName($className), $fields);
 
 		if($success){
 
 			$id = $this->connection->lastInsertId();
-			$this->id = $id;
+			$recordObject->id = $id;
 
 			return true;
 		}else{
@@ -91,13 +83,12 @@ class RecordOperator implements RecordOperatorInterface{
 
 	public function update($className, $recordObject){
 		$fields = $this->saveTargetColumns($className, $recordObject);
-
 		if(!$recordObject->validate()){
 			return false;
 		}
 
-		if(empty($recordObject->id)){
-			throw new Exception('missing primarykey');
+		if(!$recordObject->id()){
+			throw new \Exception('missing primarykey');
 		}
 
 		$success = $this->connection->update(
@@ -105,7 +96,7 @@ class RecordOperator implements RecordOperatorInterface{
 			$fields,
 			[
 				'where'=>[
-					'field'=>$this->record->primaryKey($tableName),
+					'field'=>$this->record->primaryKey($className),
 					'comparision'=>'=',
 					'value'=>$recordObject->id
 				]
@@ -139,41 +130,6 @@ class RecordOperator implements RecordOperatorInterface{
 		);
 
 		return $success;
-	}
-
-	
-	public  function hydrate($className, $rowData){
-		$pk = $this->record->primaryKey($className);
-
-		if(class_exists($className)){
-			$record = $this->getCache($className, $rowData[$pk]);
-
-			if($record !== false){
-				return $record;
-			}
-
-			$newRecord = $className::newRecord($rowData);
-			$newRecord->id = $rowData[$pk];
-
-			$this->setCache($newRecord);
-
-			return $newRecord;
-		}else{
-			throw new Exception('class not found ' . $className);
-		}
-	}
-
-
-	public function setCache($recordObject){
-		IdentityMap::set(get_class($recordObject), $recordObject->id, $recordObject);
-	}
-
-	public function getCache($className, $id){
-		return IdentityMap::get($className, $id);
-	}
-
-	public function attach($recordObject, $associations){
-		AssociationCollection::attach($recordObject, $associations);
 	}
 
 	public function useColumn($className){

@@ -9,7 +9,6 @@ use TRW\ActiveRecord\Util;
 
 class STIStrategy extends AbstractStrategy {
 
-	private static $instance = null;
 
 
 /**
@@ -27,20 +26,11 @@ class STIStrategy extends AbstractStrategy {
 	public function find($recordClass, $conditions = []){
 		$statement = $this->operator->find($recordClass, $conditions);
 
-		$result = [];
+		$resultSet = [];
 		foreach($statement as $rowData){
-			$result[] = $this->loadParent($recordClass, $rowData);
+			$resultSet[] = $this->loadParent($recordClass, $rowData);
 		}
 
-		$resultSet = [];
-		list($namespace, $class) = Util::namespaceSplit($recordClass);
-		foreach($result as $record){
-			$fullName = $namespace . '\\' . $record['type'];
-			$newRecord = $this->operator->hydrate($fullName, $record);
-			$this->operator->attach($newRecord, $fullName::associations());
-			$resultSet[] = $newRecord;
-		}
-		
 		return $resultSet;
 	}
 
@@ -81,14 +71,15 @@ class STIStrategy extends AbstractStrategy {
 
 	public function newRecord($className, $fields = []){
 			list($namespace, $class) = Util::namespaceSplit($className);
-			$STI = !empty($fields['type']) ?
+			$STI = isset($fields['type']) ?
 				 $namespace . '\\' . $fields['type'] : $className;
 	
 			if(!class_exists($STI)){
 				throw new Exception('class not found ' . $STI);
 			}
-
-			$fields['type'] = $class;
+			if(empty($fields['type'])){
+				$fields['type'] = $class;
+			}
 
 			$result = $this->loadParentColumns($STI);	
 			$fields = $this->operator->filterData($result, $fields);		
@@ -103,14 +94,14 @@ class STIStrategy extends AbstractStrategy {
 * @param string $STI 親クラス名 
 * @return array 継承元も含む使用するカラムのリスト
 */
-	private static function loadParentColumns($STI){
+	private function loadParentColumns($STI){
 		$result = [];
 		while($STI !== false){
 			if(!class_exists($STI)){
 				throw new Exception('missing class '. $STI);
 			}
 			if($STI !== 'TRW\ActiveRecord\BaseRecord'){
-				$result = $result + $STI::useColumn();
+				$result = $result + $this->operator->useColumn($STI);
 			}
 			$STI = get_parent_class($STI);
 		}	
@@ -124,12 +115,12 @@ class STIStrategy extends AbstractStrategy {
 		if(empty($record->type)){
 			$record->type = $class;
 		}
-		if(!class_exists($namespace . '\\' . $record->type)){
-			throw new Exception('missing type '.$type);
+		if(!class_exists($className)){
+			throw new \Exception('missing type '.$className);
 		}
 
 		if($record->isNew()){
-			$operator->insert($className, $record);
+			$this->operator->insert($className, $record);
 			$success = $this->updateParent($record);
 		}else{
 			$success = $this->updateParent($record);

@@ -11,6 +11,8 @@ use TRW\ActiveRecord\Schema;
 use TRW\ActiveRecord\IdentityMap;
 use TRW\ActiveRecord\Util;
 use TRW\ActiveRecord\AssociatoinCollection;
+use TRW\ActiveRecord\RecordOperator;
+use TRW\ActiveRecord\RecordProperty;
 
 /**
 * レコードクラスの基底となるクラス.
@@ -147,13 +149,6 @@ class BaseRecord {
 */
 	private $dirty;
 
-/**
-* レコードオブジェクトのid。テーブルのidが反映される.
-*
-* @var int
-*/
-//	protected $id;
-
 
 	private function __construct($fieldData = null){
 		if($fieldData !== null){
@@ -175,11 +170,6 @@ class BaseRecord {
 */
 	private function setData($fieldData){
 		foreach($fieldData as $prop => $value){
-/*
-			if($prop === static::$primaryKey){
-				continue;
-			}
-*/
 			$this->data[$prop] = $value;
 		}
 	}
@@ -199,13 +189,7 @@ class BaseRecord {
 
 	private function &get($name){
 		$value = null;
-/*
-		if($name === static::$primaryKey){
-			$value = $this->id;
-		}else if(isset($this->data[$name])){
-			$value =& $this->data[$name];
-		}
-*/
+
 		if(isset($this->data[$name])){
 			$value =& $this->data[$name];
 		}
@@ -239,9 +223,6 @@ class BaseRecord {
 * @return void
 */
 	private function set($name, $value){
-		if($name === static::primaryKey()){
-		//	return;
-		}
 
 		$schema = SchemaCollection::schema(static::tableName())
 			->columns();
@@ -255,8 +236,7 @@ class BaseRecord {
 			}else{
 				$this->setCast($name, $value, $schema[$name]);
 			}			
-			//$this->setCast($name, $value, $schema[$name]);
-			
+
 		}
 		
 		 if(in_array($name, $associations)){
@@ -554,30 +534,20 @@ class BaseRecord {
 			$fields = [];
 		}
 
-		if(!empty($fields['type']) ||
-			get_parent_class(static::className())
-			 && get_parent_class(static::className()) !== __NAMESPACE__ . '\BaseRecord'){
+		$strategy = self::inheritanceType();
+		$className = static::className();
+		$fields = $strategy->newRecord($className, $fields);
 
-			$STI = !empty($fields['type']) ?
-				 static::getNamespace() . '\\' . $fields['type'] : static::className();
-			$recordClass =  $STI;
-			$result = self::loadParentColumns($STI);	
-			$fields = self::filterData($result, $fields);		
-			$fields = $fields + $result;
-		}else{
-			$tableName = static::tableName();
-			$defaults = schemaCollection::schema($tableName)
-				->defaults();
-			$fields = $fields + $defaults;
-			$fields = self::filterData(self::useColumn(), $fields);
-			$recordClass = static::className();
+		if(isset($fields['type'])){
+			list($namespace, $class) = Util::namespaceSplit($className);
+			$className = $namespace . '\\' . $fields['type'];
 		}
 
-		if(!class_exists($recordClass)){
-			throw new Exception('missing class '. $recordClass);
+		if(!class_exists($className)){
+			throw new Exception('missing class '. $className);
 		}
 
-		$newRecord = new $recordClass($fields);
+		$newRecord = new $className($fields);
 		AssociationCollection::attach($newRecord, static::$associations);
 
 		return $newRecord;
@@ -616,48 +586,20 @@ class BaseRecord {
 * @return \TRW\ActiveRecord\BaseRecord　BaseRecordを継承したクラス
 */
 	public static function read($id){
-		$record = IdentityMap::get(static::className(), $id);
 
-		if($record !== false){
-			return $record;
-		}
-
-		$record = self::find([
+		$record = static::find([
 			'where'=>[
 				'field'=>static::$primaryKey,
 				'comparision' =>'=',
 				'value'=>$id
 			]
 		]);
-
 		if(count($record) === 0){
 			return false;
 		}
 
 		return $record[0];
 
-	}
-
-/**
-* データベーステーブルからプライマリーキーにマッチした行を返す
-* @access private
-* @param int $id 読み込みたいテーブルのid
-* @return PDOstatement|false 読み込みに失敗した場合false
-*/
-	private static function load($id){
-		$rowData = self::$connection->read(
-			static::tableName(),
-			array_keys(static::useColumn()),
-			[
-				'where'=>[
-					'field'=>static::primaryKey(),
-					'comparision'=>'=',
-					'value'=>$id
-				]
-			]
-		);
-
-		return $rowData;
 	}
 
 /**
@@ -677,17 +619,12 @@ class BaseRecord {
 
 		if($parentSaved){
 	
-			if(array_key_exists('type', $this->data)){
-				$currentSaved = $this->saveParentClass();
-			}
+			$strategy = self::inheritanceType();
 
-			if($this->isNew()){
-				$currentSaved = $this->insert($this->data);
-			}else{
-				$currentSaved = $this->update($this->dirty);
-			}
+			$currentSaved = $strategy->save($this);
 
 			if($currentSaved){
+				IdentityMap::set(get_class($this), $this->id,$this);
 				return AssociationCollection::saveChilds($this);
 			}
 			return false;	
@@ -712,89 +649,7 @@ class BaseRecord {
 		self::$connection->commit();
 		return true;
 	}
-
-/**
-* レコードクラスの名前空間を削除したクラス名を返す。
-*
-* このメソッドはシングルテーブル継承されたクラスでしか使われない
-* @access private
-* @param string $fullname レコードクラスの修飾名
-* $return string レコードクラス名
-*/
-	private function removeNamespace($fullName){
-		$class = explode('\\', $fullName);
-		$name = array_pop($class);
-
-		return $name;
-	}
-
-/**
-* 親クラスのデーターをデータベーステーブルに保存する.
-*
-* シングルテーブル継承されたオブジェクトでのみ使用される
-*
-* @access private
-* @return boolean 保存に成功すればtrue　失敗すればfalse
-* @throws \Exception レコードのtypeフィールドに対応するクラスがない場合
-*/
-	private function saveParentClass(){
-		if(empty($this->data['type'])){
-			$type =  static::removeNameSpace(static::className());
-			$this->data['type'] = $type;
-		}
-
-		if(!class_exists(static::getNamespace() . '\\' . $this->data['type'])){
-			throw new Exception('missing type '.$type);
-		}
-
-		if($this->isNew()){
-			$default = SchemaCollection::schema(static::tableName())
-				->defaults();
-			$this->insert($default);
-			$success = $this->updateParentClass();
-		}else{
-			$success = $this->updateParentClass();
-		}
-	}
-
-
-/**
-* 親クラスのデーターをデータベーステーブルにアップデートする.
-*
-* シングルテーブル継承されたオブジェクトでのみ使用される
-*
-* @access private
-* @return boolean 保存に成功すればtrue　失敗すればfalse
-* @throws \Exception レコードのtypeフィールドに対応するクラスがない場合
-*/
-	private function updateParentClass(){
-		$STI = static::className();
-			while($STI !== false){
-				if($STI !== __NAMESPACE__ . '\BaseRecord'){	
-					$STIData = self::filterData($STI::useColumn(), $this->data);
-					$this->update($STIData);
-				}
-			$STI = get_parent_class($STI);
-		}	
-		return true;
-	}
-
-
-/**
-* データーべーステーブルへの保存時、オブジェクトデータがスキーマに無い物を排除する.
-*
-* @param array $data レコードオブジェクトのフィールドデータ
-* @return array スキーマに存在しているデータ
-*/
-	private static function saveTargetColumns($data){
-		$columns = SchemaCollection::schema(static::tableName())
-			->columns();
-		unset($columns[static::$primaryKey]);
-
-		$results = self::filterData($columns, $data);
-
-		return $results;
-	}
+	
 
 /**
 * レコードオブジェクトをデータベーステーブルに保存するとき、その値を検査する.
@@ -807,7 +662,7 @@ class BaseRecord {
 *
 * @return boolean
 */
-	protected function validate(){
+	public function validate(){
 		return true;
 	}
 
@@ -835,83 +690,6 @@ class BaseRecord {
 		return $error;
 	}
 
-/**
-* レコードオブジェクトのデータをデータベーステーブルに挿入する.
-*
-* @param array $data レコードオブジェクトのデータ
-* @return boolean 挿入に失敗するとfalse 成功するとture
-*/
-	public function insert($data){
-
-		if(!$this->validate()){
-			return false;
-		}
-
-		$success = self::$connection->insert(static::tableName(), self::saveTargetColumns($data));
-
-		if($success){
-
-			$id = self::$connection->lastInsertId();
-			$this->id = $id;
-			IdentityMap::set(get_class($this), $this->id, $this);
-
-			return true;
-		}else{
-			return false;
-		}
-
-	}
-
-
-/**
-* レコードオブジェクトのデータをデータベーステーブルに更新する.
-*
-* @access private 
-* @param array $fields 更新したいデータ<br>
-* nullの場合オブジェクトのデータ
-* @return boolean 挿入に失敗するとfalse 成功するとture
-* @throws \Exception レコードオブジェクトのidが設定されていない時
-*/
-	public function update($fields = null){
-
-		if($fields === null){
-			$fields = $this->data;
-		}
-$fields = $this->data;
-
-		if(!$this->validate()){
-			return false;
-		}
-
-		$fields = self::saveTargetColumns($fields);
-
-		if(empty($this->data['id'])){
-			throw new Exception('missing primarykey');
-		}
-
-		$success = self::$connection->update(
-			static::tableName(),
-			$fields,
-			[
-				'where'=>[
-					'field'=>static::primaryKey(),
-					'comparision'=>'=',
-					'value'=>$this->id
-				]
-			]
-		 );
-
-		if($success){
-			$this->setData($fields);	
-			IdentityMap::set(get_class($this), $this->id, $this);
-
-			return true;
-		}else{
-			return false;
-		}
-
-	}
-
 
 /**
 * レコードオブジェクトのデータをデータベーステーブルに更新する.
@@ -922,7 +700,11 @@ $fields = $this->data;
 * @throws \Exception レコードオブジェクトのidが設定されていない時
 */
 	public function updateAttr(array $fields){
-		return $this->update($fields);
+		foreach($fields as $k => $v){
+			$this->{$k} = $v;
+		}
+		$strategy = self::inheritanceType();
+		return $strategy->save($this);
 
 	}
 
@@ -978,106 +760,36 @@ $fields = $this->data;
 */
 	public static function find($conditions = []){
 
-		if(self::inheritanceCheck()){
-			return self::findSTI($conditions);
-		}
+		$strategy = self::inheritanceType();
 
-		$from = static::tableName();
-		$columns = array_keys( static::useColumn());
-		$statement = self::$connection->read(
-			$from,
-			$columns,
-			$conditions
-		);
+		$result = $strategy->find(static::className(), $conditions);
 		
 		$resultSet = [];
-		foreach($statement as $rowData){
+		foreach($result as $rowData){
 			$hydrate = static::className();
-			$record = self::hydrate($rowData, $hydrate);
+			if(isset($rowData['type'])){
+				list($namespace, $class) = Util::namespaceSplit($hydrate);
+				$hydrate = $namespace . '\\' . $rowData['type'];
+			}
+			$record = IdentityMap::get($hydrate, $rowData[static::$primaryKey]);
+			if($record === false){
+				$record = self::hydrate($rowData, $hydrate);
+				IdentityMap::set($hydrate, $record->id, $record);
+			}
 			AssociationCollection::attach($record, $hydrate::$associations);
 			$resultSet[] = $record;
 		}
-		
 		return $resultSet;
 	}
 
-	private function inheritanceCheck(){
-		if(static::$inheritance !== false){
-			return true;
+	private static function inheritanceType(){
+		if(static::$inheritance === false){
+			$strategy ='\TRW\ActiveRecord\Strategy\BasicStrategy';
+		}else{
+			$strategy = "\TRW\ActiveRecord\Strategy\\" . static::$inheritance . 'Strategy';
 		}
-		return false;
-	}
-
-/**
-* シングルテーブル継承されたオブジェクトでレコードをラッピングして返す.
-*
-* 既にオブジェクトが読み込まれているならIdentityMapからキャッシュを取得する
-* <br>IdentityMapになければキャッシュする
-*i
-* 読み込まれたオブジェクトはアソシエーションが定義されていれば<br>
-* AssociationCollectionによって関連オブジェクトがアタッチされる<br>
-* @access private
-* @param array $rowData データベーステーブルから取得したレコード
-* @return \TRW\ActiveRecord\BaseRecord BaseRecordを継承したオブジェクト
-*/
-	private static function findSTI($conditions = []){
-		$from = static::tableName();
-		$columns = array_keys( static::useColumn());
-		$statement = self::$connection->read(
-			$from,
-			$columns,
-			$conditions
-		);
-
-		$result = [];
-		foreach($statement as $rowData){
-			$result[] = self::loadParent($rowData);
-		}
-
-		$resultSet = [];
-		$namespace = self::getNamespace();
-		foreach($result as $record){
-			$fullName = $namespace . '\\' . $record['type'];
-			$newRecord = self::hydrate($record, $fullName);
-			AssociationCollection::attach($newRecord, $fullName::$associations);
-			$resultSet[] = $newRecord;
-		}
-		
-		return $resultSet;
-	}
-
-/**
-* レコードクラスの名前空間を取得する.
-*
-* @return string レコードクラスの名前空間
-*/
-	private static function getNamespace(){
-		$fullName = static::className();
-		$split = explode('\\', $fullName);
-		array_pop($split);
-		$namespace = implode('\\', $split);
-
-		return $namespace;
-	}
-
-/**
-* 自身と親クラスで定義されたカラムの行データのリザルトを返す.
-*
-* @param array $rowData データベーステーブルの行データ
-* $return array 自身と親クラスのカラムのリザルト
-*/
-	private static function loadParent($rowData){
-		$namespace = static::getNamespace();
-
-		$STI = $namespace . '\\' .$rowData['type'];
-		$result = [];
-		while($STI !== false){
-			if($STI !== __NAMESPACE__ . '\BaseRecord'){
-				$result = $result +  $STI::load($rowData['id'])->fetch();
-			}
-			$STI = get_parent_class($STI);
-		}	
-		return $result;
+		return new $strategy(
+			new RecordOperator(self::$connection, new RecordProperty(static::className())));
 	}
 
 /**
@@ -1248,7 +960,7 @@ $fields = $this->data;
 *
 *
 */
-	public static function hydrate($rowData, $recordClass){
+	private static function hydrate($rowData, $recordClass){
 		$pk = static::$primaryKey;
 
 		if(class_exists($recordClass)){

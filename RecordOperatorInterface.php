@@ -11,6 +11,4 @@ interface RecordOperatorInterface {
 
 	public function delete($className, $recordObject);
 
-	public function hydrate($className, $rowData);
-
 }

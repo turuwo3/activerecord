@@ -120,7 +120,7 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 			'type' => 'Cricketer',
 			'batting_average' => 10
 		]);
-
+print_r($cricketer);		
 		$this->assertInstanceOf('App\Model\Cricketer', $cricketer);
 		$this->assertEquals(true, $cricketer->save());
 		$this->assertEquals(

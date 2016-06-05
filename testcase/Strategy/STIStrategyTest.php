@@ -66,7 +66,13 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 			(4, 'FootBaller','fuga', 'A club', null, null)");
 	}
 
+	public function testFindAll(){
+		$sti = new STIStrategy(self::$operator);
+		$result = $sti->find('App\Model\Bowller');
+		print_r($result);
+	}
 
+/*
 	public function testFindAll(){
 		$sti = new STIStrategy(self::$operator);
 
@@ -116,14 +122,14 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 
 
 	public function testFindBy(){
-/*		$conn->query("INSERT INTO players(id, type ,name, club, batting_average, bowling_average) 
+*		$conn->query("INSERT INTO players(id, type ,name, club, batting_average, bowling_average) 
 *			VALUES
 *			(1, 'Player', 'foo', null, null, null),
 *			(2, 'Cricketer', 'hoge', null, 100, null),
 *			(3, 'Bowller', 'bar', null, 20, 10),
 *
 *			(4, 'FootBaller','fuga', 'A club', null, null)");
-*/
+*
 		$sti = new STIStrategy(self::$operator);
 
 		$record1 = $sti->find('App\Model\Player', [
@@ -216,15 +222,15 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 				'name'=>null,
 				'type'=>'FootBaller',
 			], $cricketer);
-//		$cricketer->name = 'new cricketer';
-//		$cricketer->undifined = '????';
-//$cricketer->insert($cricketer->getData());
-		//$this->assertEquals(true, $sti->save($cricketer));
+		$cricketer->name = 'new cricketer';
+		$cricketer->undifined = '????';
+$cricketer->insert($cricketer->getData());
+		$this->assertEquals(true, $sti->save($cricketer));
 
 		$r = self::$connection->query("select * from players");
-//		print_R($r->fetchAll(\PDO::FETCH_ASSOC));
+		print_R($r->fetchAll(\PDO::FETCH_ASSOC));
 	}
-
+*/
 
 }
 

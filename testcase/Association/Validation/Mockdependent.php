@@ -11,7 +11,7 @@ class Mockdependent extends BaseRecord {
 		]
 	];
 
-	protected function validate(){
+	public function validate(){
 		if(strlen($this->name) < 1){
 			static::setError('name error');
 			return false;

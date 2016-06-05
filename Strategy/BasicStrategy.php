@@ -10,7 +10,7 @@ class BasicStrategy extends AbstractStrategy {
 			$recordClass,
 			$conditions
 		);
-		
+/*		
 		$resultSet = [];
 		foreach($statement as $rowData){
 			$record = $this->operator->hydrate($recordClass, $rowData);
@@ -19,14 +19,16 @@ class BasicStrategy extends AbstractStrategy {
 		}
 		
 		return $resultSet;
+*/
+		return $statement->fetchAll();
 	}
 
 		
 	public function save($record){
 		if($record->isNew()){
-			return $this->operator->insert($record);
+			return $this->operator->insert(get_class($record), $record);
 		}else{
-			return $this->operator->update($record);
+			return $this->operator->update(get_Class($record), $record);
 		}
 	}
 
@@ -34,7 +36,7 @@ class BasicStrategy extends AbstractStrategy {
 		$tableName = $recordClass::tableName();
 		$defaults = $recordClass::useColumn();
 		$fields = $fields + $defaults;
-		$fields = $this->operator->filterData(self::useColumn(), $fields);
+		$fields = $this->operator->filterData($this->operator->useColumn($recordClass), $fields);
 
 		return $fields;
 	}	
