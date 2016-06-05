@@ -1,27 +1,22 @@
 <?php
 namespace TRW\ActiveRecord;
 
-class RecordOperator {
+use TRW\ActiveRecord\RecordOperatorInterface;
 
-	private static $instance = null;
+class RecordOperator implements RecordOperatorInterface{
 
 	private $connection;
 
-	private function __construct($connection){
+	private $record;
+
+	public function __construct($connection, $record){
 		$this->connection = $connection;
+		$this->record = $record;
 	}
-
-	public function getInstance($connection){
-		if(self::$instance === null){
-			self::$instance = new RecordOperator($connection);
-		}
-		return self::$instance;
-	}
-
 
 	public function find($className, $conditions = []){
-		$from = $className::tableName();
-		$columns = array_keys($className::useColumn());
+		$from = $this->record->tableName($className);
+		$columns = array_keys($this->record->useColumn($className));
 		$statement = $this->connection->read(
 			$from,
 			$columns,
@@ -59,7 +54,7 @@ class RecordOperator {
 * @return array 使用するカラムのリスト
 */
 	private function saveTargetColumns($className, $record){
-		$useColumn = $className::useColumn();
+		$useColumn = $this->record->useColumn($className);
 		
 		if($useColumn === null){
 			return $columns;
@@ -80,7 +75,7 @@ class RecordOperator {
 			return false;
 		}
 
-		$success = $this->connection->insert($className::tableName(), $filds);
+		$success = $this->connection->insert($this->record->tableName($className), $filds);
 
 		if($success){
 
@@ -106,11 +101,11 @@ class RecordOperator {
 		}
 
 		$success = $this->connection->update(
-			$className::tableName(),
+			$this->record->tableName($className),
 			$fields,
 			[
 				'where'=>[
-					'field'=>$className::primaryKey(),
+					'field'=>$this->record->primaryKey($tableName),
 					'comparision'=>'=',
 					'value'=>$recordObject->id
 				]
@@ -126,17 +121,17 @@ class RecordOperator {
 	}
 
 
-	public function delete($recordObject){
+	public function delete($className, $recordObject){
 		$id = $recordObject->id();
 		if($id === false){
 			return false;
 		}
 
 		$success = $this->connection->delete(
-			$className::tableName(),
+			$this->record->tableName($className),
 			[
 				'where'=>[
-					'field'=>$className::primaryKey(),
+					'field'=>$this->record->primaryKey($className),
 					'comparision'=>'=',
 					'value'=>$id
 				]
@@ -148,7 +143,7 @@ class RecordOperator {
 
 	
 	public  function hydrate($className, $rowData){
-		$pk = $className::primaryKey();
+		$pk = $this->record->primaryKey($className);
 
 		if(class_exists($className)){
 			$record = $this->getCache($className, $rowData[$pk]);
@@ -182,11 +177,11 @@ class RecordOperator {
 	}
 
 	public function useColumn($className){
-		return $className::useColumn();
+		return $this->record->useColumn($className);
 	}
 
 	public function tableName($className){
-		$className::tableName();
+		return $this->record->tableName($className);
 	}
 
 }

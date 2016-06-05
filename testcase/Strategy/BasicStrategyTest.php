@@ -7,6 +7,7 @@ use TRW\ActiveRecord\Database\Driver\MySql;
 use TRW\ActiveRecord\Strategy\BasicStrategy;
 use TRW\ActiveRecord\IdentityMap;
 use TRW\ActiveRecord\RecordOperator;
+use TRW\ActiveRecord\RecordProperty;
 
 class User extends BaseRecord {
 
@@ -20,7 +21,7 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
 		self::$connection = new MySql($config['Database']['MySql']);
-		self::$operator = RecordOperator::getInstance(self::$connection);
+		self::$operator = new RecordOperator(self::$connection, new RecordProperty());
 		BaseRecord::setConnection(self::$connection);
 	}
 
@@ -53,7 +54,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(
 			[
 				'name'=>'foo',
-				'age'=>null
+				'age'=>null,
+				'id'=>$record1->id
 			],
 			$record1->getData());
 
@@ -68,7 +70,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(
 			[
 				'name'=>'bar',
-				'age'=>null
+				'age'=>null,
+				'id'=>$record2->id
 			],
 			$record2->getData());
 
@@ -83,7 +86,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(
 			[
 				'name'=>'hoge',
-				'age'=>null
+				'age'=>null,
+				'id'=>$record3->id
 			],
 			$record3->getData());
 	}

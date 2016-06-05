@@ -125,8 +125,10 @@ class RecordAssociationTest extends PHPUnit_Framework_TestCase {
 
 		$user2 = User::read(3);
 		$user2->Profile = Profile::create(['text'=>'create profile']);
+print_r([$user2->id]);
 
 		$this->assertEquals(true, $user2->save());
+print_r([$user2->id]);
 		$this->assertEquals('create profile', $user2->Profile->text);
 		$this->assertEquals(3, $user2->Profile->user_id);
 	}
@@ -141,7 +143,7 @@ class RecordAssociationTest extends PHPUnit_Framework_TestCase {
 
 		$profile = Profile::create();
 		$profile->User = $user1;
-
+print_r($profile);
 		$this->assertEquals(true, $profile->save());
 		$this->assertEquals($profile->user_id, $user1->id);
 

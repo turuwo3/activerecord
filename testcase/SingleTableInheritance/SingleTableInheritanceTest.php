@@ -94,7 +94,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(
 			[
 				'name' => 'foo',
-				'type' => 'Player'
+				'type' => 'Player',
+				'id' => $player->id
 			],
 			Player::read($player->id)->getData());
 
@@ -107,7 +108,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 			[
 				'name' => null,
 				'type' => 'FootBaller',
-				'club' => null
+				'club' => null,
+				'id' => $footballer->id
 			],
 			Player::read($footballer->id)->getData());
 
@@ -125,7 +127,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 			[
 				'name' => 'bar',
 				'type' => 'Cricketer',
-				'batting_average' => 10
+				'batting_average' => 10,
+				'id'=>$cricketer->id
 			],
 			Player::read($cricketer->id)->getData());
 
@@ -144,7 +147,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 				'name' => 'bar',
 				'type' => 'Bowller',
 				'batting_average' => 10,
-				'bowling_average' => 100
+				'bowling_average' => 100,
+				'id'=>$bowller->id
 			],
 			Bowller::read($bowller->id)->getData());
 
@@ -160,7 +164,8 @@ class SingleTableInheritanceTest extends PHPUnit_Framework_TestCase {
 				'name' => 'modified',
 				'type' => 'Bowller',
 				'batting_average' => 10,
-				'bowling_average' => 100
+				'bowling_average' => 100,
+				'id'=>$bowller->id
 			],
 			Player::read($bowller->id)->getData());
 	}

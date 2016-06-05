@@ -7,6 +7,7 @@ use TRW\ActiveRecord\Database\Driver\MySql;
 use TRW\ActiveRecord\Strategy\STIStrategy;
 use TRW\ActiveRecord\IdentityMap;
 use TRW\ActiveRecord\RecordOperator;
+use TRW\ActiveRecord\RecordProperty;
 
 class Player extends BaseRecord{
 
@@ -48,7 +49,7 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
 		self::$connection = new MySql($config['Database']['MySql']);
-		self::$operator = RecordOperator::getInstance(self::$connection);
+		self::$operator = new RecordOperator(self::$connection, new RecordProperty());
 		BaseRecord::setConnection(self::$connection);
 	}
 
@@ -76,6 +77,7 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 			[
 				'type'=>'Player',
 				'name'=>'foo',
+				'id'=>$result[0]->id
 			],
 			$result[0]->getData());
 			
@@ -84,7 +86,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 			[
 				'type'=>'Cricketer',
 				'name'=>'hoge',
-				'batting_average'=>100
+				'batting_average'=>100,
+				'id'=>$result[1]->id
 			],
 			$result[1]->getData());
 	
@@ -94,7 +97,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 				'type'=>'Bowller',
 				'name'=>'bar',
 				'batting_average'=>20,
-				'bowling_average'=>10
+				'bowling_average'=>10,
+				'id'=>$result[2]->id
 			],
 			$result[2]->getData());
 	
@@ -103,7 +107,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 			[
 				'type'=>'FootBaller',
 				'name'=>'fuga',
-				'club'=>'A club'
+				'club'=>'A club',
+				'id'=>$result[3]->id
 			],
 			$result[3]->getData());
 	
@@ -133,7 +138,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(
 			[
 				'type'=>'Player',
-				'name'=>'foo'
+				'name'=>'foo',
+				'id'=>$record1->id
 			]
 			,$record1->getData());
 
@@ -151,7 +157,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 			[
 				'type'=>'Cricketer',
 				'name'=>'hoge',
-				'batting_average'=>100
+				'batting_average'=>100,
+				'id'=>$record2->id
 			]
 			,$record2->getData());
 
@@ -170,7 +177,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 				'type'=>'Bowller',
 				'name'=>'bar',
 				'batting_average'=>20,
-				'bowling_average'=>10
+				'bowling_average'=>10,
+				'id'=>$record3->id
 			]
 			,$record3->getData());
 
@@ -187,7 +195,8 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 			[
 				'type'=>'FootBaller',
 				'name'=>'fuga',
-				'club'=>'A club'
+				'club'=>'A club',
+				'id'=>$record4->id
 			]
 			,$record4->getData());
 
@@ -205,7 +214,7 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 				'id'=>null,
 				'club'=>'a',
 				'name'=>null,
-				'type'=>'FootBaller'
+				'type'=>'FootBaller',
 			], $cricketer);
 //		$cricketer->name = 'new cricketer';
 //		$cricketer->undifined = '????';

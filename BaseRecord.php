@@ -152,7 +152,7 @@ class BaseRecord {
 *
 * @var int
 */
-	protected $id;
+//	protected $id;
 
 
 	private function __construct($fieldData = null){
@@ -175,9 +175,11 @@ class BaseRecord {
 */
 	private function setData($fieldData){
 		foreach($fieldData as $prop => $value){
+/*
 			if($prop === static::$primaryKey){
 				continue;
 			}
+*/
 			$this->data[$prop] = $value;
 		}
 	}
@@ -197,13 +199,16 @@ class BaseRecord {
 
 	private function &get($name){
 		$value = null;
-		
+/*
 		if($name === static::$primaryKey){
 			$value = $this->id;
 		}else if(isset($this->data[$name])){
 			$value =& $this->data[$name];
-	}
-
+		}
+*/
+		if(isset($this->data[$name])){
+			$value =& $this->data[$name];
+		}
 		return $value;
 	}
 
@@ -235,7 +240,7 @@ class BaseRecord {
 */
 	private function set($name, $value){
 		if($name === static::primaryKey()){
-			return;
+		//	return;
 		}
 
 		$schema = SchemaCollection::schema(static::tableName())
@@ -244,11 +249,14 @@ class BaseRecord {
 		$associations = AssociationCollection::hasAssociatedTarget(get_class($this));
 
 		if(!empty($schema[$name])){
+
 			if($schema[$name] === gettype($value)){
 				$this->setNormalize($name, $value);
 			}else{
 				$this->setCast($name, $value, $schema[$name]);
-			}
+			}			
+			//$this->setCast($name, $value, $schema[$name]);
+			
 		}
 		
 		 if(in_array($name, $associations)){
@@ -421,7 +429,7 @@ class BaseRecord {
 * @return boolean 新しく作成されたオブジェクトであればtrue
 */
 	public function isNew(){
-		return empty($this->id);
+		return empty($this->data['id']);
 	}
 
 /**
@@ -869,6 +877,7 @@ class BaseRecord {
 		if($fields === null){
 			$fields = $this->data;
 		}
+$fields = $this->data;
 
 		if(!$this->validate()){
 			return false;
@@ -876,7 +885,7 @@ class BaseRecord {
 
 		$fields = self::saveTargetColumns($fields);
 
-		if(empty($this->id)){
+		if(empty($this->data['id'])){
 			throw new Exception('missing primarykey');
 		}
 
@@ -1250,7 +1259,7 @@ class BaseRecord {
 			}
 
 			$newRecord = new $recordClass($rowData);
-			$newRecord->id = $rowData[$pk];
+//			$newRecord->id = $rowData[$pk];
 
 			IdentityMap::set($recordClass, $newRecord->id, $newRecord);
 

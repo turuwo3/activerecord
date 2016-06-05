@@ -299,6 +299,7 @@ abstract class Driver {
 	}
 
 	public function buildUpdateQuery($tableName, $values, $conditions = []){
+
 		$columns = implode(',', array_keys($values));
 		$bindValue = [];
 		foreach($values as $k => $v){
