@@ -714,21 +714,9 @@ class BaseRecord {
 * @return boolean 削除に成功すればture 失敗すればfalse
 */
 	public function delete(){
-		$id = $this->id();
-		if($id === false){
-			return false;
-		}
+		$strategy = self::inheritanceType();
 
-		$success = self::$connection->delete(
-			static::tableName(),
-			[
-				'where'=>[
-					'field'=>static::primaryKey(),
-					'comparision'=>'=',
-					'value'=>$id
-				]
-			]
-		);
+		$success =	$strategy->delete($this);
 
 		IdentityMap::set(get_class($this), $this->id, null);
 
@@ -781,6 +769,7 @@ class BaseRecord {
 		}
 		return $resultSet;
 	}
+
 
 	private static function inheritanceType(){
 		if(static::$inheritance === false){
@@ -971,7 +960,6 @@ class BaseRecord {
 			}
 
 			$newRecord = new $recordClass($rowData);
-//			$newRecord->id = $rowData[$pk];
 
 			IdentityMap::set($recordClass, $newRecord->id, $newRecord);
 

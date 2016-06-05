@@ -120,7 +120,7 @@ class STIStrategy extends AbstractStrategy {
 		}
 
 		if($record->isNew()){
-			$this->operator->insert($className, $record);
+			$this->operator->insert($record);
 			$success = $this->updateParent($record);
 		}else{
 			$success = $this->updateParent($record);
@@ -133,7 +133,7 @@ class STIStrategy extends AbstractStrategy {
 		$STI = get_class($record);
 			while($STI !== false){
 				if($STI !== 'TRW\ActiveRecord\BaseRecord'){	
-					$this->operator->update($STI, $record);
+					$this->operator->update($record);
 				}
 			$STI = get_parent_class($STI);
 		}	
@@ -141,6 +141,11 @@ class STIStrategy extends AbstractStrategy {
 	}
 
 
+	public function delete($recordObject){
+		return $this->operator->delete($recordObject);
+	}
 
 
 }
+
+

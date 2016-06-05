@@ -60,7 +60,8 @@ class RecordOperator implements RecordOperatorInterface{
 		return $result;
 	}
 
-	public function insert($className, $recordObject){
+	public function insert($recordObject){
+		$className = get_class($recordObject);
 		$fields = $this->saveTargetColumns($className, $recordObject);
 
 		if(!$recordObject->validate()){
@@ -81,7 +82,8 @@ class RecordOperator implements RecordOperatorInterface{
 
 	}
 
-	public function update($className, $recordObject){
+	public function update($recordObject){
+		$className = get_class($recordObject);
 		$fields = $this->saveTargetColumns($className, $recordObject);
 		if(!$recordObject->validate()){
 			return false;
@@ -112,7 +114,8 @@ class RecordOperator implements RecordOperatorInterface{
 	}
 
 
-	public function delete($className, $recordObject){
+	public function delete($recordObject){
+		$className = get_class($recordObject);
 		$id = $recordObject->id();
 		if($id === false){
 			return false;
