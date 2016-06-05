@@ -36,7 +36,7 @@ class STIStrategy extends AbstractStrategy {
 		list($namespace, $class) = Util::namespaceSplit($recordClass);
 		foreach($result as $record){
 			$fullName = $namespace . '\\' . $record['type'];
-			$newRecord = $this->hydrate($record, $fullName);
+			$newRecord = $this->operator->hydrate($fullName, $record);
 			$this->operator->attach($newRecord, $fullName::associations());
 			$resultSet[] = $newRecord;
 		}
@@ -79,10 +79,10 @@ class STIStrategy extends AbstractStrategy {
 		return $rowData;
 	}
 
-	public function newRecord($recordClass, $fields = []){
-			list($namespace, $class) = Util::namespaceSplit($recordClass);
+	public function newRecord($className, $fields = []){
+			list($namespace, $class) = Util::namespaceSplit($className);
 			$STI = !empty($fields['type']) ?
-				 $namespace . '\\' . $fields['type'] : $recordClass;
+				 $namespace . '\\' . $fields['type'] : $className;
 	
 			if(!class_exists($STI)){
 				throw new Exception('class not found ' . $STI);
@@ -91,7 +91,7 @@ class STIStrategy extends AbstractStrategy {
 			$fields['type'] = $class;
 
 			$result = $this->loadParentColumns($STI);	
-			$fields = $this->filterData($result, $fields);		
+			$fields = $this->operator->filterData($result, $fields);		
 			$fields = $fields + $result;
 
 			return $fields;

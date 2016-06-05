@@ -195,7 +195,7 @@ class STIStrategyTest extends \PHPUnit_Framework_TestCase {
 
 
 	public function testNewRecord(){
-		$sti = new STIStrategy(self::$connection);
+		$sti = new STIStrategy(self::$operator);
 
 
 		$cricketer = $sti->newRecord('App\Model\FootBaller',['club'=>'a']);

@@ -39,7 +39,7 @@ class RecordOperator {
 * ['id'=>1, 'name'=>'foo', 'user_id'=>1, 'age'=>20]
 * $return array フィルタリングされたデータ['id'=>1, 'age'=>20]
 */
-	private function filterData($filter, $data){
+	public function filterData($filter, $data){
 		$results = [];
 		foreach($data as $k => $v){
 			if(array_key_exists($k, $filter)){
@@ -146,6 +146,29 @@ class RecordOperator {
 		return $success;
 	}
 
+	
+	public  function hydrate($className, $rowData){
+		$pk = $className::primaryKey();
+
+		if(class_exists($className)){
+			$record = $this->getCache($className, $rowData[$pk]);
+
+			if($record !== false){
+				return $record;
+			}
+
+			$newRecord = $className::newRecord($rowData);
+			$newRecord->id = $rowData[$pk];
+
+			$this->setCache($newRecord);
+
+			return $newRecord;
+		}else{
+			throw new Exception('class not found ' . $className);
+		}
+	}
+
+
 	public function setCache($recordObject){
 		IdentityMap::set(get_class($recordObject), $recordObject->id, $recordObject);
 	}
@@ -158,7 +181,13 @@ class RecordOperator {
 		AssociationCollection::attach($recordObject, $associations);
 	}
 
-	
+	public function useColumn($className){
+		return $className::useColumn();
+	}
+
+	public function tableName($className){
+		$className::tableName();
+	}
 
 }
 

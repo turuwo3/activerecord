@@ -13,7 +13,7 @@ class BasicStrategy extends AbstractStrategy {
 		
 		$resultSet = [];
 		foreach($statement as $rowData){
-			$record = $this->hydrate($rowData, $recordClass);
+			$record = $this->operator->hydrate($recordClass, $rowData);
 			$this->operator->attach($record, $recordClass::associations());
 			$resultSet[] = $record;
 		}
@@ -34,7 +34,7 @@ class BasicStrategy extends AbstractStrategy {
 		$tableName = $recordClass::tableName();
 		$defaults = $recordClass::useColumn();
 		$fields = $fields + $defaults;
-		$fields = $this->filterData(self::useColumn(), $fields);
+		$fields = $this->operator->filterData(self::useColumn(), $fields);
 
 		return $fields;
 	}	
